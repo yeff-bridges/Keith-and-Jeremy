@@ -9,14 +9,35 @@
         >
     <Border BorderBrush="LightGray" BorderThickness="5px">
         <Grid>
+            <!-- Row definitions for main window -->
             <Grid.RowDefinitions>
+                <!-- Output area will use all of the window not occupied by other sections. -->
                 <RowDefinition Height="*"></RowDefinition>
+                
+                <!-- Current directory area will use however much space is needed to display the current directory. -->
                 <RowDefinition Height="auto"></RowDefinition>
+                
+                <!-- Command entry area will use however much space is needed to enter a command. -->
                 <RowDefinition Height="auto"></RowDefinition>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" FontFamily="Consolas" Foreground="#FF1E0BD8">This is my text.</TextBlock>
-            <TextBlock Grid.Row="1" FontFamily="Consolas" Text="{Binding CurrentWorkingDirectory}" TextWrapping="Wrap"/>
-            <TextBox Grid.Row="2" FontFamily="Consolas" TextWrapping="Wrap">(Enter a command here!)</TextBox>
+            
+            <!-- Main output area -->
+            <StackPanel Name="stackOutputPanel" Grid.Row="0" Background="Black">
+            </StackPanel>
+            
+            <!-- Current directory button and display -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="btnOpenCurrentDir" Grid.Column="0" VerticalAlignment="Stretch" Click="btnOpenCurrentDir_Click">Current Directory</Button>
+                <TextBlock Grid.Column="1" FontFamily="Consolas" Text="{Binding CurrentWorkingDirectory}" TextWrapping="Wrap" Padding="5" Height="auto" HorizontalAlignment="Stretch">
+                </TextBlock>
+            </Grid>
+            
+            <!-- Command entry area -->
+            <TextBox Name="txtCommand"  Grid.Row="2" FontFamily="Consolas" TextWrapping="Wrap" Padding="5" PreviewKeyDown="txtCommand_PreviewKeyDown"/>
         </Grid>
     </Border>
 </Window>
