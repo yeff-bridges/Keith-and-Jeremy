@@ -5,15 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WinShell"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="80*"></RowDefinition>
-            <RowDefinition Height="10*"></RowDefinition>
-            <RowDefinition Height="10*"></RowDefinition>
-        </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" FontFamily="Consolas" Foreground="#FF1E0BD8">This is my text.</TextBlock>
-        <TextBlock Grid.Row="1" FontFamily="Consolas" Text="{Binding CurrentWorkingDirectory}"/>
-        <TextBox Grid.Row="2" FontFamily="Consolas">(Enter a command here!)</TextBox>
-    </Grid>
+        Title="WinShell" Height="350" Width="525"
+        >
+    <Border BorderBrush="LightGray" BorderThickness="5px">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" FontFamily="Consolas" Foreground="#FF1E0BD8">This is my text.</TextBlock>
+            <TextBlock Grid.Row="1" FontFamily="Consolas" Text="{Binding CurrentWorkingDirectory}" TextWrapping="Wrap"/>
+            <TextBox Grid.Row="2" FontFamily="Consolas" TextWrapping="Wrap">(Enter a command here!)</TextBox>
+        </Grid>
+    </Border>
 </Window>
