@@ -22,7 +22,17 @@ namespace WinShell
         {
             window.WriteInfoText($"{window.CurrentWorkingDirectory} ==> {command}");
             window.WriteOutputText($"Processing command: {command}");
-            Process.Start(command);
+
+            try
+            {
+                Process.Start(command);
+            }
+            catch
+            {
+                window.WriteInfoText("Command failed.");
+                return false;
+            }
+
             return true;
         }
     }

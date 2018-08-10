@@ -22,13 +22,23 @@ namespace WinShell
     /// </summary>
     public partial class MainWindow : Window
     {
-        public string CurrentWorkingDirectory { get; set; }
+        public string CurrentWorkingDirectory { get; private set; }
 
-        public List<string> CommandHistory { get; set; } = new List<string>();
+        private List<string> CommandHistory { get; set; } = new List<string>();
 
-        public int IndexOfLastHistoryDisplayed { get; set; }
+        private int IndexOfLastHistoryDisplayed { get; set; }
 
-        public CommandProcessor Processor { get; set; }
+        private CommandProcessor Processor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the style used for informational text.
+        /// </summary>
+        private Style InfoTextStyle { get; set; }
+
+        /// <summary>
+        /// Gets or sets the style used for command output text.
+        /// </summary>
+        private Style OutputTextStyle { get; set; }
 
         public MainWindow()
         {
@@ -36,6 +46,8 @@ namespace WinShell
             DataContext = this;
             PresentCommandPrompt();
             Processor = new CommandProcessor();
+            InfoTextStyle = (Style)this.FindResource("InfoTextStyle");
+            OutputTextStyle = (Style)this.FindResource("OutputTextStyle");
         }
 
         /// <summary>
@@ -46,10 +58,11 @@ namespace WinShell
         {
             stackOutputPanel.Children.Add(new TextBlock
             {
-                Background = Brushes.Black,
-                Foreground = Brushes.LightGreen,
+                Style = InfoTextStyle,
                 Text = outputText
             });
+
+            ScrollToBottom();
         }
 
         /// <summary>
@@ -60,16 +73,27 @@ namespace WinShell
         {
             stackOutputPanel.Children.Add(new TextBlock
             {
-                Background = Brushes.Black,
-                Foreground = Brushes.White,
+                Style = OutputTextStyle,
                 Text = outputText
             });
+
+            ScrollToBottom();
+        }
+
+        /// <summary>
+        /// Scrolls to the bottom of the command output area.
+        /// </summary>
+        public void ScrollToBottom()
+        {
+            viewOutputView.ScrollToBottom();
+            viewOutputView.ScrollToLeftEnd();
         }
 
         private void PresentCommandPrompt()
         {
             CurrentWorkingDirectory = Directory.GetCurrentDirectory();
             IndexOfLastHistoryDisplayed = -1;
+            txtCommand.Text = string.Empty;
         }
 
         private void btnOpenCurrentDir_Click(object sender, RoutedEventArgs e)
@@ -87,8 +111,8 @@ namespace WinShell
                 // If we've not already displayed a history entry while entering the current command...
                 if (IndexOfLastHistoryDisplayed == -1)
                 {
-                    // Use the most recent history entry if we're advancing in a positive direction.
-                    if (historyOffset > 0)
+                    // Use the most recent history entry if we're advancing in a negative direction.
+                    if (historyOffset < 0)
                     {
                         historyIndex = CommandHistory.Count() - 1;
                     }
@@ -125,21 +149,24 @@ namespace WinShell
             {
                 case Key.Enter:
                     var command = txtCommand.Text;
-
                     CommandHistory.Add(command);
-                    //stackOutputPanel
                     Processor.ProcessCommand(command, this);
-                    txtCommand.Text = string.Empty;
+                    PresentCommandPrompt();
+                    e.Handled = true;
+                    break;
+
+                case Key.Escape:
+                    PresentCommandPrompt();
                     e.Handled = true;
                     break;
 
                 case Key.Up:
-                    ShowCommandFromHistory(1);
+                    ShowCommandFromHistory(-1);
                     e.Handled = true;
                     break;
 
                 case Key.Down:
-                    ShowCommandFromHistory(-1);
+                    ShowCommandFromHistory(1);
                     e.Handled = true;
                     break;
             }
