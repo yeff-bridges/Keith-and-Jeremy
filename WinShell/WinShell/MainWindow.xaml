@@ -5,19 +5,44 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WinShell"
         mc:Ignorable="d"
-        Title="WinShell" Height="350" Width="525"
+        Title="WinShell" Height="550" Width="800"
         >
     <Window.Resources>
-        <Style x:Key="InfoTextStyle" TargetType="TextBlock">
+        <Style x:Key="TitleTextStyle" TargetType="TextBlock">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="FontSize" Value="15px" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
+        <Style x:Key="OutputBlockStyle" TargetType="TextBlock">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>
+
+        <Style x:Key="InfoTextStyle" TargetType="Run">
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="Foreground" Value="LightGreen" />
         </Style>
-        
-        <Style x:Key="OutputTextStyle" TargetType="TextBlock">
+
+        <Style x:Key="OutputTextStyle" TargetType="Run">
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="Foreground" Value="White" />
         </Style>
+
+        <Style x:Key="HyperlinkStyle" TargetType="Hyperlink">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="Foreground" Value="Yellow" />
+        </Style>
     </Window.Resources>
+    
     <Border BorderBrush="LightGray" BorderThickness="5px">
         <Grid>
             <!-- Row definitions for main window -->
@@ -33,9 +58,11 @@
             </Grid.RowDefinitions>
             
             <!-- Main output area -->
-
-            <ScrollViewer Name="viewOutputView" Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Name="viewOutputView" Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                 <StackPanel Name="stackOutputPanel" Background="Black">
+                    <TextBlock Style="{DynamicResource TitleTextStyle}" Margin="0,0,0,10" >
+                        The WinShell Command Interpreter, by Jerbediah Frechekowski
+                    </TextBlock>
                 </StackPanel>
             </ScrollViewer>
 

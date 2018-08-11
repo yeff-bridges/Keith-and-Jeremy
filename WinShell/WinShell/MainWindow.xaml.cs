@@ -24,16 +24,30 @@ namespace WinShell
     {
         public string CurrentWorkingDirectory { get; private set; }
 
+        public ICommand ProcessorCommand { get; private set; }
+
         private List<string> CommandHistory { get; set; } = new List<string>();
 
         private int IndexOfLastHistoryDisplayed { get; set; }
 
         private CommandProcessor Processor { get; set; }
 
+        private TextBlock CurrentOutputBlock { get; set; }
+
+        /// <summary>
+        /// Gets or sets the style used for hyperlinked text.
+        /// </summary>
+        private Style HyperlinkStyle { get; set; }
+
         /// <summary>
         /// Gets or sets the style used for informational text.
         /// </summary>
         private Style InfoTextStyle { get; set; }
+
+        /// <summary>
+        /// Gets or sets the style used for output text block.
+        /// </summary>
+        private Style OutputBlockStyle { get; set; }
 
         /// <summary>
         /// Gets or sets the style used for command output text.
@@ -46,17 +60,38 @@ namespace WinShell
             DataContext = this;
             PresentCommandPrompt();
             Processor = new CommandProcessor();
+            ProcessorCommand = new ProcessorCommand() { MainWindow = this };
+            HyperlinkStyle = (Style)this.FindResource("HyperlinkStyle");
             InfoTextStyle = (Style)this.FindResource("InfoTextStyle");
+            OutputBlockStyle = (Style)this.FindResource("OutputBlockStyle");
             OutputTextStyle = (Style)this.FindResource("OutputTextStyle");
         }
 
         /// <summary>
-        /// Writes a string of informational (non-command output) to the command output area.
+        /// Writes a command hyperlink to the command output area.
+        /// </summary>
+        /// <param name="outputText">String to output.</param>
+        /// <param name="command">Command to associate with the hyperlink.</param>
+        /// <param name="parameters">Object containing the parameters (if any) for the command.</param>
+        public void WriteCommandLink(string outputText, ICommand command, object parameters)
+        {
+            CurrentOutputBlock.Inlines.Add(new Hyperlink(new Run(outputText))
+            {
+                Style = HyperlinkStyle,
+                Command = command,
+                CommandParameter = parameters
+            });
+
+            ScrollToBottom();
+        }
+
+        /// <summary>
+        /// Writes a string of informational (non-command output) text to the command output area.
         /// </summary>
         /// <param name="outputText">String to output.</param>
         public void WriteInfoText(string outputText)
         {
-            stackOutputPanel.Children.Add(new TextBlock
+            CurrentOutputBlock.Inlines.Add(new Run
             {
                 Style = InfoTextStyle,
                 Text = outputText
@@ -71,7 +106,7 @@ namespace WinShell
         /// <param name="outputText">String to output.</param>
         public void WriteOutputText(string outputText)
         {
-            stackOutputPanel.Children.Add(new TextBlock
+            CurrentOutputBlock.Inlines.Add(new Run
             {
                 Style = OutputTextStyle,
                 Text = outputText
@@ -150,7 +185,7 @@ namespace WinShell
                 case Key.Enter:
                     var command = txtCommand.Text;
                     CommandHistory.Add(command);
-                    Processor.ProcessCommand(command, this);
+                    ProcessCommand(command);
                     PresentCommandPrompt();
                     e.Handled = true;
                     break;
@@ -170,6 +205,17 @@ namespace WinShell
                     e.Handled = true;
                     break;
             }
+        }
+
+        public void ProcessCommand(string command)
+        {
+            CurrentOutputBlock = new TextBlock
+            {
+                Style = OutputBlockStyle,
+            };
+            stackOutputPanel.Children.Add(CurrentOutputBlock);
+
+            Processor.ProcessCommand(command, this);
         }
     }
 }
