@@ -18,14 +18,16 @@ namespace WinShell
             "cd",
             "help",
             "exit",
-            "pwd"
+            "pwd",
         };
 
-        private string[] _builtin_sym =
+        private bool _hasSymbol = false;
+        private char[] _builtin_sym =
         {
-            "|",
-            "<",
-            ">"
+            ' ',
+            '|',
+            '<',
+            '>',
         };
 
         delegate int CommandMethod(string[] args);
@@ -119,6 +121,46 @@ namespace WinShell
         }
 
         /// <summary>
+        /// Splits a string into tokens based on certain delimiters and returns an array to the  caller.
+        /// If the string was split by anything other than white space, a boolean is set.
+        /// </summary>
+        private string[] GetArgs(string command)
+        {
+            string[] argv = new string[20];
+            StringBuilder token = new StringBuilder();
+            int argc = 0, count = 0;
+            _hasSymbol = false;
+
+            foreach(char c in command)
+            {
+                foreach(char sym in _builtin_sym)
+                {
+                    count++;
+                    if (sym == c)
+                    {
+                        if (c == ' ')
+                        {
+                            argv[argc] = token.ToString();
+                        }
+                        else
+                        {
+                            _hasSymbol = true;
+                            argv[argc] = c.ToString();
+                        }   
+                        token.Clear();
+                        break;
+                    }
+                    else if (count == _builtin_sym.Length)
+                    {
+                        token.Append(c);
+                    }
+                }
+            }
+
+            return argv;
+        }
+
+        /// <summary>
         /// Writes a string of informational (non-command output) to the command output area.
         /// </summary>
         /// <param name="outputText">String to output.</param>
@@ -135,5 +177,6 @@ namespace WinShell
         {
             _outputWindow.WriteOutputText(outputText);
         }
+
     }
 }
