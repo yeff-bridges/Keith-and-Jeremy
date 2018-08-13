@@ -78,7 +78,7 @@
                 <Button x:Name="btnOpenCurrentDir" Margin="5" Grid.Column="0" Padding="5" VerticalAlignment="Stretch" Click="btnOpenCurrentDir_Click">Current Directory</Button>
                 
                 <!-- Display current directory. -->
-                <TextBlock Grid.Column="1" FontFamily="Consolas" Text="{Binding CurrentWorkingDirectory}" TextWrapping="Wrap" Padding="5" Height="auto" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+                <  Name="curDirDisplay" Grid.Column="1" FontFamily="Consolas" TextWrapping="Wrap" Padding="5" Height="auto" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
             </Grid>
             
             <!-- Command entry area -->

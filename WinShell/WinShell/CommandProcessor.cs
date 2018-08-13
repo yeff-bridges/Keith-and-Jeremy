@@ -30,7 +30,7 @@ namespace WinShell
             '>',
         };
 
-        delegate int CommandMethod(string[] args);
+        delegate int CommandMethod(IEnumerable<string> args);
 
         private CommandMethod[] _builtin_func;
 
@@ -42,22 +42,59 @@ namespace WinShell
             {
                 CommandCD,
                 CommandHelp,
-                CommandHelp,
+                CommandExit,
                 CommandPrintWorkingDirectory,
             };
         }
 
-        int CommandCD(string[] args)
+        /// <summary>
+        /// Changes the working directory to the path stored in the second slot of args.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns>Returns an integer representing the exit status of the operation.</returns>
+        int CommandCD(IEnumerable<string> args)
         {
+            try
+            {
+                Directory.SetCurrentDirectory(args.ElementAt(1));
+            }
+            catch
+            {
+                WriteOutputText("There was a problem with the file path entered\n");
+                //alternate exit status to be determined later
+            }
+
             return 0;
         }
 
-        int CommandHelp(string[] args)
+        /// <summary>
+        /// Prints a help message for the user.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns>Returns an integer representing the exit status of the operation.</returns>
+        int CommandHelp(IEnumerable<string> args)
         {
+            WriteOutputText("Help is on the way!\n");
             return 0;
         }
 
-        int CommandPrintWorkingDirectory(string[] args)
+        /// <summary>
+        /// Exits the shell.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns>Returns an integer representing the exit status of the operation.</returns>
+        int CommandExit(IEnumerable<string> args)
+        {
+            WriteOutputText("There is no exit!\n");
+            return 0;
+        }
+
+        /// <summary>
+        /// Prints the current working directory.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns>Returns an integer representing the exit status of the operation.</returns>
+        int CommandPrintWorkingDirectory(IEnumerable<string> args)
         {
             var currentDirectory = Directory.GetCurrentDirectory();
             WriteOutputText($"Current directory: {currentDirectory}\n");
@@ -73,7 +110,6 @@ namespace WinShell
         /// <returns>A value indicating whether we were able to successfully process the command.</returns>
         public bool ProcessCommand(string command, MainWindow window)
         {
-            bool builtin = false;
             _outputWindow = window;
 
             var chdirCommand = $"cd {window.CurrentWorkingDirectory}";
@@ -81,41 +117,46 @@ namespace WinShell
             WriteInfoText($" ==> {command}\n");
             WriteOutputText($"Processing command: {command}\n");
 
-            int commandIndex = -1;
-            switch (command)
+            int commandIndex = 0;
+
+            var args = GetArgs(command);
+
+            //this process will be handled differently by a seperate object in the future.
+            if (_hasSymbol)
             {
-                case "pwd":
-                    commandIndex = 3;
-                    break;
+                HandleMultiprocessCommand(args);
+                _hasSymbol = false;
+                return true;
             }
 
-            builtin = (commandIndex >= 0);
-
-            if (!builtin)
+            foreach(string str in _builtin_str)
             {
-                Launch(command);
-            }
-            else
-            {
-                var args = new string[] { "Arg0", "Arg1" };
-                _builtin_func[commandIndex](args);
+                if (str.Equals(args.ElementAt(0)))
+                {
+                    _builtin_func[commandIndex](args);
+                    return true;
+                }
+                commandIndex++;
             }
 
+            //Should the command be unrecognized by this point, attempt to launch the first argument.
+            Launch(args);
+            
             return true;
         }
 
         /// <summary>
-        /// Creates a process specified by the command string.
-        /// <param name="command">Command string to process.</param>
+        /// Creates a process specified by the list of arguments passed.
+        /// <param name="args">Set of arguments, the first being the program to launch.</param>
         /// <returns>A value indicating whether we were able to successfully launch a new process.</returns>
-        public bool Launch(string command){
+        public bool Launch(IEnumerable<string> args){
             try
             {
-                Process.Start(command);
+                Process.Start(args.ElementAt(0));
             }
             catch
             {
-                WriteInfoText($"Command failed. Could not find: {command}\n");
+                WriteInfoText($"Command failed. Could not find: {args.ElementAt(0)}\n");
                 return false;
             }
 
@@ -123,43 +164,57 @@ namespace WinShell
         }
 
         /// <summary>
-        /// Splits a string into tokens based on certain delimiters and returns an array to the  caller.
-        /// If the string was split by anything other than white space, a boolean is set.
+        /// Splits a string into tokens based on certain delimiters.
+        /// If the string was split by anything other than white space, _hasSymbol is set.
         /// </summary>
-        private string[] GetArgs(string command)
+        /// <param name="command">String to split into arguments.</param>
+        /// <returns>A list of arguments to be processed.</returns>
+        private IEnumerable<string> GetArgs(string command)
         {
-            string[] argv = new string[20];
+            List<string> argv = new List<string>();
             StringBuilder token = new StringBuilder();
-            int argc = 0, count = 0;
+            int checkedSymbolCount = 0;
             _hasSymbol = false;
 
             foreach(char c in command)
             {
                 foreach(char sym in _builtin_sym)
                 {
-                    count++;
+                    checkedSymbolCount++;
                     if (sym == c)
                     {
                         if (c == ' ')
                         {
-                            argv[argc] = token.ToString();
+                            EasyAdd<string>(argv, token.ToString());
                         }
                         else
                         {
                             _hasSymbol = true;
-                            argv[argc] = c.ToString();
-                        }   
+                            EasyAdd<string>(argv, token.ToString());
+                            EasyAdd<string>(argv, c.ToString());
+                        }
                         token.Clear();
                         break;
                     }
-                    else if (count == _builtin_sym.Length)
+                    else if (checkedSymbolCount == _builtin_sym.Length)
                     {
                         token.Append(c);
                     }
                 }
+                checkedSymbolCount = 0;
             }
 
+            EasyAdd<string>(argv, token.ToString());
             return argv;
+        }
+
+        /// <summary>
+        /// Starts the work of handling commands involving multiple processes.
+        /// </summary>
+        /// <param name="args"></param>
+        private void HandleMultiprocessCommand(IEnumerable<string> args)
+        {
+            WriteOutputText("To be added soon!\n");
         }
 
         /// <summary>
@@ -188,6 +243,17 @@ namespace WinShell
         private void WriteCommandLink(string outputText, string command)
         {
             _outputWindow.WriteCommandLink(outputText, _outputWindow.ProcessorCommand, command);
+        }
+
+        private void EasyAdd<T>(List<T> list, T item)
+        {
+            if (item != null)
+            {
+                if (!(item.GetType() == typeof(string)) || !String.IsNullOrWhiteSpace(item as string))
+                {
+                    list.Add(item);
+                }
+            }
         }
     }
 }

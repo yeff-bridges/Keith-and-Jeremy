@@ -127,6 +127,7 @@ namespace WinShell
         private void PresentCommandPrompt()
         {
             CurrentWorkingDirectory = Directory.GetCurrentDirectory();
+            curDirDisplay.Text = CurrentWorkingDirectory;
             IndexOfLastHistoryDisplayed = -1;
             txtCommand.Text = string.Empty;
         }
