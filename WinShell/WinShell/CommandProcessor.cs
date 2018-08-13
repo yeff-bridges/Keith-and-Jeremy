@@ -60,7 +60,7 @@ namespace WinShell
         int CommandPrintWorkingDirectory(string[] args)
         {
             var currentDirectory = Directory.GetCurrentDirectory();
-            WriteOutputText($"Current directory: {currentDirectory}");
+            WriteOutputText($"Current directory: {currentDirectory}\n");
 
             return 0;
         }
@@ -76,8 +76,10 @@ namespace WinShell
             bool builtin = false;
             _outputWindow = window;
 
-            WriteInfoText($"{window.CurrentWorkingDirectory} ==> {command}");
-            WriteOutputText($"Processing command: {command}");
+            var chdirCommand = $"cd {window.CurrentWorkingDirectory}";
+            WriteCommandLink(window.CurrentWorkingDirectory, chdirCommand);
+            WriteInfoText($" ==> {command}\n");
+            WriteOutputText($"Processing command: {command}\n");
 
             int commandIndex = -1;
             switch (command)
@@ -113,7 +115,7 @@ namespace WinShell
             }
             catch
             {
-                WriteInfoText($"Command failed. Could not find: {command}");
+                WriteInfoText($"Command failed. Could not find: {command}\n");
                 return false;
             }
 
@@ -178,5 +180,14 @@ namespace WinShell
             _outputWindow.WriteOutputText(outputText);
         }
 
+        /// <summary>
+        /// Writes a command hyperlink to the command output area.
+        /// </summary>
+        /// <param name="outputText">String to output.</param>
+        /// <param name="command">Command line to associate with the hyperlink.</param>
+        private void WriteCommandLink(string outputText, string command)
+        {
+            _outputWindow.WriteCommandLink(outputText, _outputWindow.ProcessorCommand, command);
+        }
     }
 }
