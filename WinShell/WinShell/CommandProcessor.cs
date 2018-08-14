@@ -115,7 +115,6 @@ namespace WinShell
             var chdirCommand = $"cd {window.CurrentWorkingDirectory}";
             WriteCommandLink(window.CurrentWorkingDirectory, chdirCommand);
             WriteInfoText($" ==> {command}\n");
-            WriteOutputText($"Processing command: {command}\n");
 
             int commandIndex = 0;
 

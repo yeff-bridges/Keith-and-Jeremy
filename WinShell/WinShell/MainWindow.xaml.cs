@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,9 +22,52 @@ namespace WinShell
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        public string CurrentWorkingDirectory { get; private set; }
+        /// <summary>
+        /// Event for notifying listeners of property-changed events.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Notifies listeners of property changes.
+        /// </summary>
+        /// <param name="propertyName">The name of the property that has changed.</param>
+        /// <remarks>
+        /// This method is called by the Set accessor of each property.
+        /// The CallerMemberName attribute that is applied to the optional propertyName
+        /// parameter causes the property name of the caller to be substituted as an argument.
+        /// </remarks>
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the path to the current working directory.
+        /// </summary>
+        public string CurrentWorkingDirectory
+        {
+            get
+            {
+                return _currentWorkingDirectory;
+            }
+
+            private set
+            {
+                if (_currentWorkingDirectory != value)
+                {
+                    _currentWorkingDirectory = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        // The path to the current working directory.
+        private string _currentWorkingDirectory;
 
         public ICommand ProcessorCommand { get; private set; }
 
@@ -124,19 +169,31 @@ namespace WinShell
             viewOutputView.ScrollToLeftEnd();
         }
 
-        private void PresentCommandPrompt()
+        /// <summary>
+        /// Initializes the command prompt for use with the next command.
+        /// </summary>
+        public void PresentCommandPrompt()
         {
             CurrentWorkingDirectory = Directory.GetCurrentDirectory();
-            curDirDisplay.Text = CurrentWorkingDirectory;
             IndexOfLastHistoryDisplayed = -1;
             txtCommand.Text = string.Empty;
         }
 
+        /// <summary>
+        /// Handles "click" events for the "Current Directory" button.
+        /// </summary>
+        /// <param name="sender">The object trigger this event.</param>
+        /// <param name="e">Arguments associated with this event.</param>
         private void btnOpenCurrentDir_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("explorer.exe", CurrentWorkingDirectory);
         }
 
+        /// <summary>
+        /// Cycles through the command history, setting the command line text to the selected history entry.
+        /// </summary>
+        /// <param name="historyOffset">The offset by which to navigate through the command history. This is usually either 1 or -1, to select
+        /// either the previous or next entry.</param>
         private void ShowCommandFromHistory(int historyOffset)
         {
             // If we have any commands in our history...
@@ -179,10 +236,16 @@ namespace WinShell
             }
         }
 
+        /// <summary>
+        /// Handles the "preview key down" event for the command line edit control.
+        /// </summary>
+        /// <param name="sender">The object trigger this event.</param>
+        /// <param name="e">Arguments associated with this event.</param>
         private void txtCommand_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
+                // If the Enter key was pressed, attempt to parse and execute the command specified in the command line edit control.
                 case Key.Enter:
                     var command = txtCommand.Text;
                     CommandHistory.Add(command);
@@ -191,16 +254,19 @@ namespace WinShell
                     e.Handled = true;
                     break;
 
+                // If the Esc key was pressed, discard the contents of the command line edit control and wait for a new command.
                 case Key.Escape:
                     PresentCommandPrompt();
                     e.Handled = true;
                     break;
 
+                // If the Up arrow was pressed, replace the contents of the command line edit control with the previous entry in the command history.
                 case Key.Up:
                     ShowCommandFromHistory(-1);
                     e.Handled = true;
                     break;
 
+                // If the Down arrow was pressed, replace the contents of the command line edit control with the next entry in the command history.
                 case Key.Down:
                     ShowCommandFromHistory(1);
                     e.Handled = true;
@@ -208,6 +274,10 @@ namespace WinShell
             }
         }
 
+        /// <summary>
+        /// Prepares the UI output window for the next command, and then calls the command processor to process the command.
+        /// </summary>
+        /// <param name="command"></param>
         public void ProcessCommand(string command)
         {
             CurrentOutputBlock = new TextBlock
