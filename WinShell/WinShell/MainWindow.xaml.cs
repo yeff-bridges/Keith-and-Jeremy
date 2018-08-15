@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CSRegisterHotkey;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -99,6 +100,11 @@ namespace WinShell
         /// </summary>
         private Style OutputTextStyle { get; set; }
 
+        /// <summary>
+        /// Our registered hotkey for showing/hiding the command line.
+        /// </summary>
+        private HotKeyRegister _hotKey = null;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -110,6 +116,18 @@ namespace WinShell
             InfoTextStyle = (Style)this.FindResource("InfoTextStyle");
             OutputBlockStyle = (Style)this.FindResource("OutputBlockStyle");
             OutputTextStyle = (Style)this.FindResource("OutputTextStyle");
+            Loaded += MainWindow_Loaded;
+        }
+
+        /// <summary>
+        /// Handles the "Loaded" event for our main window, letting us know when it is "open for business".
+        /// </summary>
+        /// <param name="sender">The object trigger this event.</param>
+        /// <param name="e">Arguments associated with this event.</param>
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Register our hotkey. This needs to happen after our main window is loaded.
+            RegisterCmdLineHotkey();
         }
 
         /// <summary>
@@ -177,6 +195,77 @@ namespace WinShell
             CurrentWorkingDirectory = Directory.GetCurrentDirectory();
             IndexOfLastHistoryDisplayed = -1;
             txtCommand.Text = string.Empty;
+        }
+
+        /// <summary>
+        /// Registers our application hotkey.
+        /// </summary>
+        private void RegisterCmdLineHotkey()
+        {
+            try
+            {
+                // Get the window handle for our main window.
+                var hwndMainWindow = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+
+                // Register the hotkey Ctrl-Alt-W.
+                _hotKey = new HotKeyRegister(
+                    hwndMainWindow,
+                    100,
+                    KeyModifiers.Alt | KeyModifiers.Control,
+                    System.Windows.Forms.Keys.W
+                );
+
+                // Listen for "hot key pressed" events.
+                _hotKey.HotKeyPressed += new EventHandler(HotKeyPressed);
+            }
+            catch
+            {
+                // Ignore the failure to register our hotkey.
+            }
+        }
+
+        /// <summary>
+        /// Handle presses of our hotkey.
+        /// </summary>
+        /// <param name="sender">The object trigger this event.</param>
+        /// <param name="e">Arguments associated with this event.</param>
+        private void HotKeyPressed(object sender, EventArgs e)
+        {
+            // If we're already active...
+            if (IsActive)
+            {
+                // If we're not minimized, minimize us now and return.
+                if (WindowState != WindowState.Minimized)
+                {
+                    WindowState = WindowState.Minimized;
+                    return;
+                }
+            }
+
+            // Restore our window if minimized.
+            if (WindowState == WindowState.Minimized)
+            {
+                WindowState = WindowState.Normal;
+            }
+
+            // Activate our window.
+            this.Activate();
+        }
+
+        /// <summary>
+        /// Handle the "closed" message for our main window.
+        /// </summary>
+        /// <param name="e">Arguments associated with this event.</param>
+        protected override void OnClosed(EventArgs e)
+        {
+            // Unregister our hotkey if we previously succeeded in registering one.
+            if (_hotKey != null)
+            {
+                _hotKey.Dispose();
+                _hotKey = null;
+            }
+
+            base.OnClosed(e);
         }
 
         /// <summary>
