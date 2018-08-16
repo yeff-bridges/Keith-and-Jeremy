@@ -85,7 +85,7 @@ namespace WinShell
         /// <returns>Returns an integer representing the exit status of the operation.</returns>
         int CommandExit(IEnumerable<string> args)
         {
-            WriteOutputText("There is no exit!\n");
+            Environment.Exit(0); //This feels slow. The close API is another option
             return 0;
         }
 
