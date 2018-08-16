@@ -39,7 +39,8 @@
         <Style x:Key="HyperlinkStyle" TargetType="Hyperlink">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="Foreground" Value="#FF73B5EC" />
+            <Setter Property="Foreground" Value="#FFBEECEC" />
+            <Setter Property="TextDecorations" Value="None" />
         </Style>
     </Window.Resources>
     

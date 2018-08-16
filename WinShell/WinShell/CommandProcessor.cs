@@ -19,6 +19,8 @@ namespace WinShell
             "help",
             "exit",
             "pwd",
+            "dir",
+            "exec"
         };
 
         private bool _hasSymbol = false;
@@ -44,6 +46,8 @@ namespace WinShell
                 CommandHelp,
                 CommandExit,
                 CommandPrintWorkingDirectory,
+                CommandDirectory,
+                CommandExecute,
             };
         }
 
@@ -58,9 +62,9 @@ namespace WinShell
             {
                 Directory.SetCurrentDirectory(args.ElementAt(1));
             }
-            catch
+            catch (Exception ex)
             {
-                WriteOutputText("There was a problem with the file path entered\n");
+                WriteInfoText($"Command failed: {ex.Message}\n");
                 //alternate exit status to be determined later
             }
 
@@ -103,6 +107,76 @@ namespace WinShell
         }
 
         /// <summary>
+        /// Displays a directory listing.
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
+        /// <returns>An integer representing the exit status of the operation.</returns>
+        int CommandDirectory(IEnumerable<string> args)
+        {
+            try
+            {
+                var path = args.Count() >= 2 ? args.ElementAt(1) : Directory.GetCurrentDirectory();
+                IEnumerable<string> directories = Directory.EnumerateDirectories(path);
+                IEnumerable<string> files = Directory.EnumerateFiles(path);
+                var targetDir = Path.GetFullPath(path);
+
+                // Display the directory banner.
+                WriteOutputText("Directory of ");
+                WriteCommandLink($"{targetDir}\n", $"cd \"{targetDir}\"");
+
+                // Display an output line for each directory in the listing.
+                foreach (var directory in directories)
+                {
+                    var fullPath = Path.GetFullPath(directory);
+                    var filespec = Path.GetFileName(fullPath);
+                    var dirInfo = new DirectoryInfo(directory);
+                    if (dirInfo.Exists)
+                    {
+                        var lastUpdated = dirInfo.LastWriteTime;
+                        WriteOutputText($"{lastUpdated.ToString("MM/dd/yyyy")}  {lastUpdated.ToString("hh:mm tt")}    ");
+                        WriteCommandLink($"<DIR>", $"dir \"{fullPath}\"");
+                        WriteOutputText("          ");
+                        WriteCommandLink($"{filespec}\n", $"cd \"{fullPath}\"");
+                    }
+                }
+
+                // Display an output line for each file in the listing.
+                foreach (var file in files)
+                {
+                    var fullPath = Path.GetFullPath(file);
+                    var filespec = Path.GetFileName(fullPath);
+                    var fileInfo = new FileInfo(file);
+                    if (fileInfo.Exists)
+                    {
+                        var lastUpdated = fileInfo.LastWriteTime;
+                        var length = fileInfo.Length;
+                        WriteOutputText($"{lastUpdated.ToString("MM/dd/yyyy")}  {lastUpdated.ToString("hh:mm tt")}    {length.ToString("##,###,###,###").PadLeft(14)} ");
+                        WriteCommandLink($"{filespec}\n", $"exec \"{fullPath}\"");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteInfoText($"Command failed: {ex.Message}\n");
+                return -1;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Executes the specified command as a new process without checking to see if it's an internal shell command.
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
+        /// <returns>An integer representing the exit status of the operation.</returns>
+        int CommandExecute(IEnumerable<string> args)
+        {
+            Launch(args.Skip(1));
+
+            return 0;
+        }
+
+        /// <summary>
         /// Parses and processes the specified command string.
         /// </summary>
         /// <param name="command">Command string to process.</param>
@@ -112,7 +186,7 @@ namespace WinShell
         {
             _outputWindow = window;
 
-            var chdirCommand = $"cd {window.CurrentWorkingDirectory}";
+            var chdirCommand = $"cd \"{window.CurrentWorkingDirectory}\"";
             WriteCommandLink(window.CurrentWorkingDirectory, chdirCommand);
             WriteInfoText($" ==> {command}\n");
 
@@ -153,9 +227,9 @@ namespace WinShell
             {
                 Process.Start(args.ElementAt(0));
             }
-            catch
+            catch (Exception ex)
             {
-                WriteInfoText($"Command failed. Could not find: {args.ElementAt(0)}\n");
+                WriteInfoText($"Command failed: {ex.Message}\n");
                 return false;
             }
 
@@ -174,9 +248,37 @@ namespace WinShell
             StringBuilder token = new StringBuilder();
             int checkedSymbolCount = 0;
             _hasSymbol = false;
+            bool withinQuotes = false;
 
             foreach(char c in command)
             {
+                // Process quoted strings first. The string (with quotes removed) will be
+                // treated as a single token.
+                // If we're currently processing a quoted string...
+                if (withinQuotes)
+                {
+                    // If we've encountered our closing quote, add the token to our arg list and prepare to start a new token.
+                    if (c == '"')
+                    {
+                        EasyAdd<string>(argv, token.ToString());
+                        token.Clear();
+                        withinQuotes = false;
+                        break;
+                    }
+                    else
+                    {
+                        // Else add the character to the token.
+                        token.Append(c);
+                        continue;
+                    }
+                }
+                else if (c == '"')
+                {
+                    // If we've encountered an opening quote, note it and skip to the next character.
+                    withinQuotes = true;
+                    continue;
+                }
+
                 foreach(char sym in _builtin_sym)
                 {
                     checkedSymbolCount++;
