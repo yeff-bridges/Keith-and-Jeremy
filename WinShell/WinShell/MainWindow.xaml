@@ -39,7 +39,8 @@
         <Style x:Key="HyperlinkStyle" TargetType="Hyperlink">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="Foreground" Value="#FF73B5EC" />
+            <Setter Property="Foreground" Value="#FFBEECEC" />
+            <Setter Property="TextDecorations" Value="None" />
         </Style>
     </Window.Resources>
     
@@ -78,7 +79,7 @@
                 <Button x:Name="btnOpenCurrentDir" Margin="5" Grid.Column="0" Padding="5" VerticalAlignment="Stretch" Click="btnOpenCurrentDir_Click">Current Directory</Button>
                 
                 <!-- Display current directory. -->
-                <TextBlock  Name="curDirDisplay" Grid.Column="1" FontFamily="Consolas" TextWrapping="Wrap" Padding="5" Height="auto" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding CurrentWorkingDirectory}" Grid.Column="1" FontFamily="Consolas" TextWrapping="Wrap" Padding="5" Height="auto" HorizontalAlignment="Stretch" VerticalAlignment="Center" />
             </Grid>
             
             <!-- Command entry area -->
