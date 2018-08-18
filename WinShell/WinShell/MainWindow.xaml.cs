@@ -110,8 +110,8 @@ namespace WinShell
             InitializeComponent();
             DataContext = this;
             PresentCommandPrompt();
-            Processor = new CommandProcessor();
-            ProcessorCommand = new ProcessorCommand() { MainWindow = this };
+            Processor = new CommandProcessor(this);
+            //ProcessorCommand = new ProcessorCommand() { MainWindow = this }; we appear to have different uses for this class
             HyperlinkStyle = (Style)this.FindResource("HyperlinkStyle");
             InfoTextStyle = (Style)this.FindResource("InfoTextStyle");
             OutputBlockStyle = (Style)this.FindResource("OutputBlockStyle");
@@ -366,7 +366,7 @@ namespace WinShell
         /// <summary>
         /// Prepares the UI output window for the next command, and then calls the command processor to process the command.
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="command">User input taken from window to be used as a command.</param>
         public void ProcessCommand(string command)
         {
             CurrentOutputBlock = new TextBlock

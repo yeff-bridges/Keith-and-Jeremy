@@ -8,9 +8,10 @@ using System.Windows.Input;
 namespace WinShell
 {
     /// <summary>
-    /// A class representing a "Command Processor" command.
+    /// A class representing a generic "Command Processor" command.
+    /// Concrete command classes must implement the bottom three methods.
     /// </summary>
-    public class ProcessorCommand : ICommand
+    public abstract class ProcessorCommand : ICommand
     {
         /// <summary>
         /// The main window associated with this command.
@@ -41,5 +42,9 @@ namespace WinShell
         /// An event that listeners can use for dynamically determining when "can execute" status changes.
         /// </summary>
         public event EventHandler CanExecuteChanged;
+
+        abstract public IEnumerable<string> GetArgs();
+        abstract public SingleCommandType GetSingleCommandType();
+        abstract public MultiCommandType GetMultiCommandType();
     }
 }

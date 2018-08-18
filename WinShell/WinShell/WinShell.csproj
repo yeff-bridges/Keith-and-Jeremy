@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="BuiltinLibrary.cs" />
     <Compile Include="CommandExecutor.cs" />
     <Compile Include="CommandParser.cs" />
     <Compile Include="MultiProcessCommand.cs" />

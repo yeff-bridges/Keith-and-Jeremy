@@ -6,16 +6,33 @@ using System.Threading.Tasks;
 
 namespace WinShell
 {
-
-public partial class SingleProcessCommand : ProcessorCommand
+    /// <summary>
+    /// Class for creating commands that use a single process.
+    /// </summary>
+    public class SingleProcessCommand : ProcessorCommand
     {
-        private List<string> _args;
+        private IEnumerable<string> _args;
         private SingleCommandType _commandType;
 
-        public SingleProcessCommand(List<string> args, MainWindow window, Dictionary<string, SingleCommandType> dict)
+        public SingleProcessCommand(IEnumerable<string> args, SingleCommandType commandType) : base()
         {
-            //Super();
-            _commandType = dict[args.ElementAt(0)];
+            _args = args;
+            _commandType = commandType;
+        }
+
+        public override IEnumerable<string> GetArgs()
+        {
+            return _args;
+        }
+
+        public override SingleCommandType GetSingleCommandType()
+        {
+            return _commandType;
+        }
+
+        public override MultiCommandType GetMultiCommandType()
+        {
+            throw new NotImplementedException();
         }
     }
 }
