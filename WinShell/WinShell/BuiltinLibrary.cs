@@ -25,6 +25,7 @@ namespace WinShell
         DeleteFile,
 
         //Misc
+        Execute,
         Launch,
         ChMod,
         ChOwn,
@@ -72,7 +73,7 @@ namespace WinShell
                 { "mov", SingleCommandType.MoveFile },
                 { "cp", SingleCommandType.CopyFile },
                 { "del", SingleCommandType.DeleteFile },
-                { "exec", SingleCommandType.Launch },
+                { "exec", SingleCommandType.Execute },
                 { "chown", SingleCommandType.ChOwn },
                 { "chmod", SingleCommandType.ChMod },
                 { "help", SingleCommandType.Help },
@@ -286,6 +287,10 @@ namespace WinShell
 
                 case SingleCommandType.Help:
                     CommandHelp(command.GetArgs());
+                    break;
+
+                case SingleCommandType.Execute:
+                    CommandExecute(command.GetArgs());
                     break;
 
                 case SingleCommandType.Exit:

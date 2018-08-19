@@ -73,7 +73,7 @@ namespace WinShell
         /// <param name="command">Command line to associate with the hyperlink.</param>
         public void WriteCommandLink(string outputText, string command)
         {
-            _outputWindow.WriteCommandLink(outputText, _outputWindow.ProcessorCommand, command);
+            _outputWindow.WriteCommandLink(outputText, _outputWindow.RunShellRequestCommand, command);
         }
     }
 }

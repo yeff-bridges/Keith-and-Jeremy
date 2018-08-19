@@ -59,6 +59,7 @@
     <Compile Include="CommandExecutor.cs" />
     <Compile Include="CommandParser.cs" />
     <Compile Include="MultiProcessCommand.cs" />
+    <Compile Include="RunShellRequestCommand.cs" />
     <Compile Include="SingleProcessCommand.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

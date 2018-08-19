@@ -70,7 +70,7 @@ namespace WinShell
         // The path to the current working directory.
         private string _currentWorkingDirectory;
 
-        public ICommand ProcessorCommand { get; private set; }
+        public ICommand RunShellRequestCommand { get; private set; }
 
         private List<string> CommandHistory { get; set; } = new List<string>();
 
@@ -111,7 +111,7 @@ namespace WinShell
             DataContext = this;
             PresentCommandPrompt();
             Processor = new CommandProcessor(this);
-            //ProcessorCommand = new ProcessorCommand() { MainWindow = this }; we appear to have different uses for this class
+            RunShellRequestCommand = new RunShellRequestCommand() { MainWindow = this };
             HyperlinkStyle = (Style)this.FindResource("HyperlinkStyle");
             InfoTextStyle = (Style)this.FindResource("InfoTextStyle");
             OutputBlockStyle = (Style)this.FindResource("OutputBlockStyle");
