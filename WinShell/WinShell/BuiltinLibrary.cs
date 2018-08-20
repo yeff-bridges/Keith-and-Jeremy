@@ -102,7 +102,7 @@ namespace WinShell
         {
             _singleBuiltins = InitSingleDict();
             _multiBuiltins = InitMultiDict();
-            _executor = processor.GetExecutor();
+            _executor = processor.Executor;
         }
 
 

@@ -18,16 +18,27 @@ namespace WinShell
         /// </summary>
         public MainWindow Window { get; private set; }
 
-        private CommandExecutor _executor;
-        private CommandParser _parser;
-        private BuiltinLibrary _lib;
+        /// <summary>
+        /// Gets the executor associated with this command processor instance.
+        /// </summary>
+        public CommandExecutor Executor { get; private set; }
+
+        /// <summary>
+        /// Gets the parser associated with this command processor instance.
+        /// </summary>
+        public CommandParser Parser { get; private set; }
+
+        /// <summary>
+        /// Gets the built-in commands associated with this command processor instance.
+        /// </summary>
+        public BuiltinLibrary Builtins { get; private set; }
 
         public CommandProcessor(MainWindow outputWindow)
         {
             Window = outputWindow;
-            _executor = new CommandExecutor(this);
-            _lib = new BuiltinLibrary(this);
-            _parser = new CommandParser(this);
+            Executor = new CommandExecutor(this);
+            Builtins = new BuiltinLibrary(this);
+            Parser = new CommandParser(this);
         }
 
         /// <summary>
@@ -41,43 +52,28 @@ namespace WinShell
             Window = window;
 
             var chdirCommand = $"cd \"{window.CurrentWorkingDirectory}\"";
-            _executor.WriteCommandLink(window.CurrentWorkingDirectory, chdirCommand);
-            _executor.WriteInfoText($" ==> {command}\n");
+            Executor.WriteCommandLink(window.CurrentWorkingDirectory, chdirCommand);
+            Executor.WriteInfoText($" ==> {command}\n");
 
             try
             {
-                ProcessorCommand pCommand = _parser.Parse(command);
+                ProcessorCommand pCommand = Parser.Parse(command);
                 if (pCommand is SingleProcessCommand)
                 {
-                    _executor.ExecuteSingleProcessCommand(pCommand);
+                    Executor.ExecuteSingleProcessCommand(pCommand);
                 }
                 else if (pCommand is MultiProcessCommand)
                 {
-                    _executor.ExecuteMultipleProcessCommand(pCommand);
+                    Executor.ExecuteMultipleProcessCommand(pCommand);
                 }
             }
             catch(KeyNotFoundException e)
             {
-                _executor.WriteOutputText("Command not recognized.");
+                Executor.WriteOutputText("Command not recognized.");
                 return false; //return value may be used later, but unlikely
             }
 
             return true;
-        }
-
-
-        //
-        // Getter functions below.
-        //
-
-        public CommandExecutor GetExecutor()
-        {
-            return _executor;
-        }
-
-        public BuiltinLibrary GetLib()
-        {
-            return _lib;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace WinShell
         /// <param name="command">The command from the user to be executed.</param>
         public void ExecuteSingleProcessCommand(ProcessorCommand command)
         {
-            _processor.GetLib().runCommand(command);
+            _processor.Builtins.runCommand(command);
             return;
         }
 

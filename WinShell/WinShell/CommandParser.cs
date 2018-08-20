@@ -18,7 +18,7 @@ namespace WinShell
         public CommandParser(CommandProcessor processor)
         {
             _processor = processor;
-            _lib = processor.GetLib();
+            _lib = processor.Builtins;
         }
 
         public ProcessorCommand Parse(string command)
