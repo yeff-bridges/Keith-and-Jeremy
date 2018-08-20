@@ -13,14 +13,18 @@ namespace WinShell
     /// </summary>
     public class CommandProcessor
     {
-        private MainWindow _outputWindow;
+        /// <summary>
+        /// Gets the output window associated with this command.
+        /// </summary>
+        public MainWindow Window { get; private set; }
+
         private CommandExecutor _executor;
         private CommandParser _parser;
         private BuiltinLibrary _lib;
 
         public CommandProcessor(MainWindow outputWindow)
         {
-            _outputWindow = outputWindow;
+            Window = outputWindow;
             _executor = new CommandExecutor(this);
             _lib = new BuiltinLibrary(this);
             _parser = new CommandParser(this);
@@ -34,7 +38,7 @@ namespace WinShell
         /// <returns>A value indicating whether we were able to successfully process the command.</returns>
         public bool ProcessCommand(string command, MainWindow window)
         {
-            _outputWindow = window;
+            Window = window;
 
             var chdirCommand = $"cd \"{window.CurrentWorkingDirectory}\"";
             _executor.WriteCommandLink(window.CurrentWorkingDirectory, chdirCommand);
@@ -65,12 +69,6 @@ namespace WinShell
         //
         // Getter functions below.
         //
-
-
-        public MainWindow GetWindow()
-        {
-            return _outputWindow;
-        }
 
         public CommandExecutor GetExecutor()
         {

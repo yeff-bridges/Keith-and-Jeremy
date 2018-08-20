@@ -18,7 +18,7 @@ namespace WinShell
         public CommandExecutor(CommandProcessor processor)
         {
             _processor = processor;
-            _outputWindow = processor.GetWindow();
+            _outputWindow = processor.Window;
         }
 
         /// <summary>
