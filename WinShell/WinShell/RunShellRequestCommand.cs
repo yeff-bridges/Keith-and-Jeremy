@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using WinShell.UIManagement;
 
 namespace WinShell
 {
@@ -13,9 +14,9 @@ namespace WinShell
     public class RunShellRequestCommand : ICommand
     {
         /// <summary>
-        /// The main window associated with this command.
+        /// The shell session associated with this command.
         /// </summary>
-        public MainWindow MainWindow { get; set; }
+        public ShellSession ShellSession { get; private set; }
 
         /// <summary>
         /// Returns a value indicating whether the process is in a state that supports executing this command.
@@ -33,13 +34,25 @@ namespace WinShell
         /// <param name="parameter">The parameter object associated with the command request.</param>
         public void Execute(object parameter)
         {
-            MainWindow.ProcessCommand(parameter as string);
-            MainWindow.PresentCommandPrompt();
+            if (ShellSession != null)
+            {
+                ShellSession.ProcessCommand(parameter as string);
+                ShellSession.UIManager.PresentCommandPrompt();
+            }
         }
 
         /// <summary>
         /// An event that listeners can use for dynamically determining when "can execute" status changes.
         /// </summary>
         public event EventHandler CanExecuteChanged;
+
+        /// <summary>
+        /// Constructs a new RunShellRequestCommand instance associated with a specific shell session.
+        /// </summary>
+        /// <param name="shellSession">The shell session associated with this RunShellRequestCommand instance.</param>
+        public RunShellRequestCommand(ShellSession shellSession)
+        {
+            ShellSession = shellSession;
+        }
     }
 }

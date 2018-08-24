@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using WinShell.UIManagement;
 
 namespace WinShell
 {
@@ -16,5 +17,10 @@ namespace WinShell
         abstract public IEnumerable<string> GetArgs();
         abstract public SingleCommandType GetSingleCommandType();
         abstract public MultiCommandType GetMultiCommandType();
+
+        /// <summary>
+        /// Gets or sets the console window to use for user input and output.
+        /// </summary>
+        public ConsoleWindow ConsoleWindow { get; set; }
     }
 }

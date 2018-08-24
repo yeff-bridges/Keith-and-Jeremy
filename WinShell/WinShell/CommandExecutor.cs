@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WinShell.UIManagement;
 
 namespace WinShell
 {
@@ -12,8 +13,11 @@ namespace WinShell
     /// </summary>
     public class CommandExecutor {
         private CommandProcessor _processor;
-        private MainWindow _outputWindow;
-        private string _currentWorkingDirectory;
+
+        /// <summary>
+        /// The output window to use for the currently-executing command.
+        /// </summary>
+        private ConsoleWindow _outputWindow;
 
         public CommandExecutor(CommandProcessor processor)
         {
@@ -27,6 +31,7 @@ namespace WinShell
         /// <param name="command">The command from the user to be executed.</param>
         public void ExecuteSingleProcessCommand(ProcessorCommand command)
         {
+            _outputWindow = command.ConsoleWindow;
             _processor.Builtins.runCommand(command);
             return;
         }
@@ -37,15 +42,16 @@ namespace WinShell
         /// <param name="command">The command from the user to be executed.</param>
         public void ExecuteMultipleProcessCommand(ProcessorCommand command)
         {
+            _outputWindow = command.ConsoleWindow;
             return;
         }
 
         /// <summary>
-        /// Gets or sets the path to the current working directory.
+        /// Gets the path to the current working directory.
         /// </summary>
         public string GetCurrentWorkingDirectory()
         {
-            return _outputWindow.CurrentWorkingDirectory;
+            return Directory.GetCurrentDirectory();
         }
 
         /// <summary>
