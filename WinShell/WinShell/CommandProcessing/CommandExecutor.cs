@@ -12,6 +12,10 @@ namespace WinShell
     /// Class for taking a valid command object and executing it. Handles interactions between window and library.
     /// </summary>
     public class CommandExecutor {
+
+        /// <summary>
+        /// The processor calling this executor on a command.
+        /// </summary>
         private CommandProcessor _processor;
 
         /// <summary>
@@ -32,7 +36,7 @@ namespace WinShell
         public void ExecuteSingleProcessCommand(ProcessorCommand command)
         {
             _outputWindow = command.ConsoleWindow;
-            _processor.Builtins.runCommand(command);
+            _processor.Builtins.runCommand(command, true);
             return;
         }
 
@@ -43,6 +47,7 @@ namespace WinShell
         public void ExecuteMultipleProcessCommand(ProcessorCommand command)
         {
             _outputWindow = command.ConsoleWindow;
+            _processor.Builtins.runCommand(command, false);
             return;
         }
 
@@ -60,6 +65,7 @@ namespace WinShell
         /// <param name="outputText">String to output.</param>
         public void WriteInfoText(string outputText)
         {
+            _outputWindow = _processor.Window;
             _outputWindow.WriteInfoText(outputText);
         }
 
@@ -69,6 +75,7 @@ namespace WinShell
         /// <param name="outputText">String to output.</param>
         public void WriteOutputText(string outputText)
         {
+            _outputWindow = _processor.Window;
             _outputWindow.WriteOutputText(outputText);
         }
 

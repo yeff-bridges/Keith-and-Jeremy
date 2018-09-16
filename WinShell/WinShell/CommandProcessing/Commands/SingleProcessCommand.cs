@@ -11,23 +11,20 @@ namespace WinShell
     /// </summary>
     public class SingleProcessCommand : ProcessorCommand
     {
-        private IEnumerable<string> _args;
-        private SingleCommandType _commandType;
-
         public SingleProcessCommand(IEnumerable<string> args, SingleCommandType commandType) : base()
         {
-            _args = args;
-            _commandType = commandType;
+            Args = args;
+            sCommandType = commandType;
         }
 
-        public override IEnumerable<string> GetArgs()
+        public override IEnumerable<string> GetArgs() //obsolete and to be deleted soon
         {
-            return _args;
+            return Args;
         }
 
-        public override SingleCommandType GetSingleCommandType()
+        public override SingleCommandType GetSingleCommandType() //obsolete and to be deleted soon
         {
-            return _commandType;
+            return sCommandType;
         }
 
         public override MultiCommandType GetMultiCommandType()

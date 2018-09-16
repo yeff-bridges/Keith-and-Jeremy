@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WinShell;
 
 namespace WinShell
 {
@@ -11,18 +12,12 @@ namespace WinShell
     /// Made from multiple SingleProcessCommands joined by a single Multi command during execution
     /// </summary>
     public class MultiProcessCommand : ProcessorCommand
-    {
-        private List<string> _args1, _args2;
-        private MultiCommandType _commandType;
-        private SingleProcessCommand _cmd1, _cmd2;
-
+    { 
         public MultiProcessCommand(List<string> args1, List <string> args2, MultiCommandType multiCommandType, Dictionary<string, SingleCommandType> dict) : base()
         {
-            _args1 = args1;
-            _args2 = args2;
-            _commandType = multiCommandType;
-            _cmd1 = new SingleProcessCommand(args1, dict[_args1.ElementAt(0)]);
-            _cmd2 = new SingleProcessCommand(args2, dict[_args2.ElementAt(0)]);
+            mCommandType = multiCommandType;
+            Cmd1 = new SingleProcessCommand(args1, dict[args1.ElementAt(0)]);
+            Cmd2 = new SingleProcessCommand(args2, dict[args2.ElementAt(0)]);
         }
 
         public override IEnumerable<string> GetArgs()
@@ -30,14 +25,14 @@ namespace WinShell
             throw new NotImplementedException();
         }
 
-        public override SingleCommandType GetSingleCommandType()
+        public override SingleCommandType GetSingleCommandType() //to be removed soon
         {
             throw new NotImplementedException();
         }
 
-        public override MultiCommandType GetMultiCommandType()
+        public override MultiCommandType GetMultiCommandType() //ditto
         {
-            return _commandType;
+            return mCommandType;
         }
     }
 }

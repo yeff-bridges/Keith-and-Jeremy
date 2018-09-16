@@ -14,6 +14,13 @@ namespace WinShell
     /// </summary>
     public abstract class ProcessorCommand
     {
+
+        public IEnumerable<string> Args { get; protected set; }
+        public SingleCommandType sCommandType { get; protected set; }
+        public MultiCommandType mCommandType { get; protected set; }
+        public SingleProcessCommand Cmd1 { get; protected set; }
+        public SingleProcessCommand Cmd2 { get; protected set; }
+
         abstract public IEnumerable<string> GetArgs();
         abstract public SingleCommandType GetSingleCommandType();
         abstract public MultiCommandType GetMultiCommandType();

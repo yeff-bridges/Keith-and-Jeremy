@@ -44,6 +44,7 @@ namespace WinShell
         Pipe,
         CondMultiLaunch,
         UncoMultiLaunch,
+        Test,
 
         //Default
         NULL
@@ -56,8 +57,8 @@ namespace WinShell
     public class BuiltinLibrary
     {
         private CommandExecutor _executor;
-        private Dictionary<string, SingleCommandType> _singleBuiltins;
-        private Dictionary<string, MultiCommandType> _multiBuiltins;
+        public Dictionary<string, SingleCommandType> SingleBuiltins { get; set; }
+        public Dictionary<string, MultiCommandType> MultiBuiltins { get; set; }
 
         /// <summary>
         /// This function initializes the Dictionary that holds all commands that work with only one process.
@@ -90,9 +91,10 @@ namespace WinShell
         private Dictionary<string, MultiCommandType> InitMultiDict()
         {
             var dict = new Dictionary<string, MultiCommandType> {
-                { "|", MultiCommandType.Pipe },
+                { "|", MultiCommandType.Test },
                 { "&", MultiCommandType.CondMultiLaunch },
                 { "+", MultiCommandType.UncoMultiLaunch },
+                { "Test", MultiCommandType.Test },
             };
 
             return dict;
@@ -100,14 +102,14 @@ namespace WinShell
 
         public BuiltinLibrary(CommandProcessor processor)
         {
-            _singleBuiltins = InitSingleDict();
-            _multiBuiltins = InitMultiDict();
+            SingleBuiltins = InitSingleDict();
+            MultiBuiltins = InitMultiDict();
             _executor = processor.Executor;
         }
 
 
         ///
-        /// Begin built-in function implementations below
+        /// Begin built-in single process function implementations below
         ///
         
 
@@ -244,9 +246,9 @@ namespace WinShell
             {
                 Process.Start(args.ElementAt(0));
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                _executor.WriteInfoText($"Command failed: {ex.Message}\n");
+                _executor.WriteInfoText($"Command failed: {e.Message}\n");
                 return false;
             }
 
@@ -254,77 +256,94 @@ namespace WinShell
         }
 
 
-        //
-        //End built-in function implementations above
-        //
+        ///
+        ///End built-in single process function implementations above
+        ///
 
-        
-        //
-        //Begin support functions below
-        //
 
-        
+        ///
+        ///Begin built-in multi process function implementations below
+        ///
+
+        private bool TestFunction(ProcessorCommand command)
+        {
+            _executor.WriteInfoText("Test command started\n");
+            try
+            {
+                _executor.WriteInfoText("Test command complete\n");
+            }catch (Exception e)
+            {
+                _executor.WriteInfoText($"Test command failed: {e.Message}\n");
+            }
+            
+            return true;
+        }
+
+        ///
+        ///End built-in multi process function implementations belove
+        ///
+
+
+        ///
+        ///Begin support functions below
+        ///
+
+
         /// <summary>
         /// Support method used to call correct built-in function using command type. 
         /// Only used on SingleProcessCommands.
         /// </summary>
         /// <param name="command">Command input by user to be executed.</param>
-        public void runCommand(ProcessorCommand command)
+        public void runCommand(ProcessorCommand command, bool single)
         {
-            switch (command.GetSingleCommandType())
+            if (single)
             {
-                case SingleCommandType.ChangeDirectory:
-                    CommandCD(command.GetArgs());
-                    break;
+                switch (command.GetSingleCommandType())
+                {
+                    case SingleCommandType.ChangeDirectory:
+                        CommandCD(command.GetArgs());
+                        break;
 
-                case SingleCommandType.PrintCurrentDirectory:
-                    CommandPrintWorkingDirectory(command.GetArgs());
-                    break;
+                    case SingleCommandType.PrintCurrentDirectory:
+                        CommandPrintWorkingDirectory(command.GetArgs());
+                        break;
 
-                case SingleCommandType.ViewDirectory:
-                    CommandDirectory(command.GetArgs());
-                    break;
+                    case SingleCommandType.ViewDirectory:
+                        CommandDirectory(command.GetArgs());
+                        break;
 
-                case SingleCommandType.Help:
-                    CommandHelp(command.GetArgs());
-                    break;
+                    case SingleCommandType.Help:
+                        CommandHelp(command.GetArgs());
+                        break;
 
-                case SingleCommandType.Execute:
-                    CommandExecute(command.GetArgs());
-                    break;
+                    case SingleCommandType.Execute:
+                        CommandExecute(command.GetArgs());
+                        break;
 
-                case SingleCommandType.Exit:
-                    CommandExit(command.GetArgs());
-                    break;
+                    case SingleCommandType.Exit:
+                        CommandExit(command.GetArgs());
+                        break;
 
-                default:
-                    _executor.WriteOutputText($"\"{command.GetArgs().ElementAt(0)}\" command not yet supported.\n");
-                    break;
-                    
+                    default:
+                        _executor.WriteOutputText($"\"{command.GetArgs().ElementAt(0)}\" command not yet supported.\n");
+                        break;
+
+                }
+            }
+            else
+            {
+                switch (command.GetMultiCommandType())
+                {
+                    case MultiCommandType.Test:
+                        TestFunction(command);
+                        break;
+                }
             }
         }
-        
-        /// <summary>
-        /// A getter function for the SingleCommandType Dictionary
-        /// </summary>
-        /// <returns>Returns _singleBuiltins.</returns>
-        public Dictionary<string, SingleCommandType> GetSingleCommandDict()
-        {
-            return _singleBuiltins;
-        }
-
-        /// <summary>
-        /// A getter function for the MultiCommandType Dictionary
-        /// </summary>
-        /// <returns>Returns _multiBuiltins.</returns>
-        public Dictionary<string, MultiCommandType> GetMultiCommandDict()
-        {
-            return _multiBuiltins;
-        }
 
 
-        //
-        //End Support Functions above
-        //
+        ///
+        ///End Support Functions above
+        ///
     }
 }
