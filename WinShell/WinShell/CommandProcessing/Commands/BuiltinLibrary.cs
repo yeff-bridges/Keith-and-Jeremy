@@ -25,6 +25,7 @@ namespace WinShell
         DeleteFile,
 
         //Misc
+        Mathematica,
         Execute,
         Launch,
         ChMod,
@@ -79,6 +80,7 @@ namespace WinShell
                 { "chmod", SingleCommandType.ChMod },
                 { "help", SingleCommandType.Help },
                 { "exit", SingleCommandType.Exit },
+                { "math" , SingleCommandType.Mathematica},
             };
 
             return dict;
@@ -94,7 +96,7 @@ namespace WinShell
                 { "|", MultiCommandType.Test },
                 { "&", MultiCommandType.CondMultiLaunch },
                 { "+", MultiCommandType.UncoMultiLaunch },
-                { "Test", MultiCommandType.Test },
+                { "-", MultiCommandType.Test },
             };
 
             return dict;
@@ -111,7 +113,7 @@ namespace WinShell
         ///
         /// Begin built-in single process function implementations below
         ///
-        
+
 
         /// <summary>
         /// Changes the working directory to the path stored in the second slot of args.
@@ -175,9 +177,9 @@ namespace WinShell
         {
             try
             {
-                var path = args.Count() >= 2 ? args.ElementAt(1) : _executor.GetCurrentWorkingDirectory(); 
+                var path = args.Count() >= 2 ? args.ElementAt(1) : _executor.GetCurrentWorkingDirectory();
                 IEnumerable<string> directories = Directory.EnumerateDirectories(path); //FLAG
-                IEnumerable<string> files = Directory.EnumerateFiles(path); 
+                IEnumerable<string> files = Directory.EnumerateFiles(path);
                 var targetDir = Path.GetFullPath(path);
 
                 // Display the directory banner.
@@ -203,7 +205,7 @@ namespace WinShell
                 // Display an output line for each file in the listing.
                 foreach (var file in files)
                 {
-                    var fullPath = Path.GetFullPath(file); 
+                    var fullPath = Path.GetFullPath(file);
                     var filespec = Path.GetFileName(fullPath);
                     var fileInfo = new FileInfo(file);
                     if (fileInfo.Exists)
@@ -255,6 +257,11 @@ namespace WinShell
             return true;
         }
 
+        private int CommandMathematica(IEnumerable<string> args)
+        {
+            Process.Start("explorer.exe", "C:\\Programming\\MyPrograms\\Mathematica");
+            return 0;
+        }
 
         ///
         ///End built-in single process function implementations above
@@ -271,16 +278,18 @@ namespace WinShell
             try
             {
                 _executor.WriteInfoText("Test command complete\n");
-            }catch (Exception e)
+            }
+            catch (Exception e)
             {
                 _executor.WriteInfoText($"Test command failed: {e.Message}\n");
+                return false;
             }
-            
+
             return true;
         }
 
         ///
-        ///End built-in multi process function implementations belove
+        ///End built-in multi process function implementations below
         ///
 
 
@@ -291,7 +300,6 @@ namespace WinShell
 
         /// <summary>
         /// Support method used to call correct built-in function using command type. 
-        /// Only used on SingleProcessCommands.
         /// </summary>
         /// <param name="command">Command input by user to be executed.</param>
         public void runCommand(ProcessorCommand command, bool single)
@@ -322,6 +330,10 @@ namespace WinShell
 
                     case SingleCommandType.Exit:
                         CommandExit(command.GetArgs());
+                        break;
+
+                    case SingleCommandType.Mathematica:
+                        CommandMathematica(command.GetArgs());
                         break;
 
                     default:

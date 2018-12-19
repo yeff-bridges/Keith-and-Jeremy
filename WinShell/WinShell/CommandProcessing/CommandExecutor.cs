@@ -11,11 +11,8 @@ namespace WinShell
     /// <summary>
     /// Class for taking a valid command object and executing it. Handles interactions between window and library.
     /// </summary>
-    public class CommandExecutor {
-
-        /// <summary>
-        /// The processor calling this executor on a command.
-        /// </summary>
+    public class CommandExecutor
+    {
         private CommandProcessor _processor;
 
         /// <summary>
@@ -47,7 +44,6 @@ namespace WinShell
         public void ExecuteMultipleProcessCommand(ProcessorCommand command)
         {
             _outputWindow = command.ConsoleWindow;
-            _processor.Builtins.runCommand(command, false);
             return;
         }
 
@@ -86,6 +82,7 @@ namespace WinShell
         /// <param name="command">Command line to associate with the hyperlink.</param>
         public void WriteCommandLink(string outputText, string command)
         {
+            _outputWindow = _processor.Window;
             _outputWindow.WriteCommandLink(outputText, _outputWindow.RunShellRequestCommand, command);
         }
     }
