@@ -27,6 +27,14 @@ namespace WinShell
         }
 
         /// <summary>
+        /// Clears the command output area.
+        /// </summary>
+        public void ClearOutput()
+        {
+            _processor.Window.ClearOutput();
+        }
+
+        /// <summary>
         /// Used to call the built-in method that handles the command passed to this method.
         /// </summary>
         /// <param name="command">The command from the user to be executed.</param>
@@ -53,6 +61,17 @@ namespace WinShell
         public string GetCurrentWorkingDirectory()
         {
             return Directory.GetCurrentDirectory();
+        }
+
+        /// <summary>
+        /// Enables or disables input redirection for the corresponding shell session.
+        /// </summary>
+        /// <param name="enabled">A value indicating whether the enable input redirection.</param>
+        /// <param name="targetStream">The stream to use for writing standard-input characters, if enabled is true.</param>
+        /// <returns>The previous input-redirection-enable value.</returns>
+        public bool EnableInputRedirection(bool enabled, StreamWriter targetStream)
+        {
+            return _processor.Window.EnableInputRedirection(enabled, targetStream);
         }
 
         /// <summary>

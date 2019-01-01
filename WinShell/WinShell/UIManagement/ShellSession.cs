@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,16 @@ namespace WinShell.UIManagement
         public UIManager UIManager { get; private set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether keyboard and display I/O is being redirected to an external console application.
+        /// </summary>
+        public bool UiRedirectionActive { get; set; }
+
+        /// <summary>
+        /// Gets or sets the target stream for redirecting standard input.
+        /// </summary>
+        public StreamWriter UiTargetStandardIOStream { get; set; }
+
+        /// <summary>
         /// Gets the command processor associated with this shell session.
         /// </summary>
         private CommandProcessor CommandProcessor { get; }
@@ -42,6 +53,7 @@ namespace WinShell.UIManagement
         {
             UIManager = uiManager;
             CommandProcessor = commandProcessor;
+            UiRedirectionActive = false;
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,6 +52,11 @@ namespace WinShell.UIManagement
         private Style OutputTextStyle { get; set; }
 
         /// <summary>
+        /// Gets or sets the shell session used with the command.
+        /// </summary>
+        private ShellSession ShellSession { get; set; }
+
+        /// <summary>
         /// Default constructor. Mostly intended for "design-time" use in the Visual Studio editor.
         /// </summary>
         public ConsoleWindow() : this(null)
@@ -69,6 +75,33 @@ namespace WinShell.UIManagement
             OutputBlockStyle = (Style)this.FindResource("OutputBlockStyle");
             OutputTextStyle = (Style)this.FindResource("OutputTextStyle");
             RunShellRequestCommand = new RunShellRequestCommand(shellSession);
+            ShellSession = shellSession;
+        }
+
+        /// <summary>
+        /// Clears the command output area.
+        /// </summary>
+        public void ClearOutput()
+        {
+            // Run update on UI thread.
+            Dispatcher.Invoke(new Action(() =>
+            {
+                stackOutputPanel.Children.Clear();
+            }));
+        }
+
+        /// <summary>
+        /// Enables or disables input redirection for the corresponding shell session.
+        /// </summary>
+        /// <param name="enabled">A value indicating whether the enable input redirection.</param>
+        /// <param name="targetStream">The stream to use for writing standard-input characters, if enabled is true.</param>
+        /// <returns>The previous input-redirection-enable value.</returns>
+        public bool EnableInputRedirection(bool enabled, StreamWriter targetStream)
+        {
+            var oldValue = ShellSession.UiRedirectionActive;
+            ShellSession.UiRedirectionActive = enabled;
+            ShellSession.UiTargetStandardIOStream = (enabled) ? targetStream : null;
+            return oldValue;
         }
 
         /// <summary>
@@ -76,11 +109,14 @@ namespace WinShell.UIManagement
         /// </summary>
         public void StartNextOutputGrouping()
         {
-            CurrentOutputBlock = new TextBlock
-            {
-                Style = OutputBlockStyle,
-            };
-            stackOutputPanel.Children.Add(CurrentOutputBlock);
+            // Run update on UI thread.
+            Dispatcher.Invoke(new Action(() =>
+            {   CurrentOutputBlock = new TextBlock
+                {
+                    Style = OutputBlockStyle,
+                };
+                stackOutputPanel.Children.Add(CurrentOutputBlock);
+            }));
         }
 
         /// <summary>
@@ -91,14 +127,18 @@ namespace WinShell.UIManagement
         /// <param name="parameters">Object containing the parameters (if any) for the command.</param>
         public void WriteCommandLink(string outputText, ICommand command, object parameters)
         {
-            CurrentOutputBlock.Inlines.Add(new Hyperlink(new Run(outputText))
+            // Run update on UI thread.
+            Dispatcher.Invoke(new Action(() =>
             {
-                Style = HyperlinkStyle,
-                Command = command,
-                CommandParameter = parameters
-            });
+                CurrentOutputBlock.Inlines.Add(new Hyperlink(new Run(outputText))
+                {
+                    Style = HyperlinkStyle,
+                    Command = command,
+                    CommandParameter = parameters
+                });
 
-            ScrollToBottom();
+                ScrollToBottom();
+            }));
         }
 
         /// <summary>
@@ -107,13 +147,17 @@ namespace WinShell.UIManagement
         /// <param name="outputText">String to output.</param>
         public void WriteInfoText(string outputText)
         {
-            CurrentOutputBlock.Inlines.Add(new Run
+            // Run update on UI thread.
+            Dispatcher.Invoke(new Action(() =>
             {
-                Style = InfoTextStyle,
-                Text = outputText
-            });
+                CurrentOutputBlock.Inlines.Add(new Run
+                {
+                    Style = InfoTextStyle,
+                    Text = outputText
+                });
 
-            ScrollToBottom();
+                ScrollToBottom();
+            }));
         }
 
         /// <summary>
@@ -122,13 +166,17 @@ namespace WinShell.UIManagement
         /// <param name="outputText">String to output.</param>
         public void WriteOutputText(string outputText)
         {
-            CurrentOutputBlock.Inlines.Add(new Run
+            // Run update on UI thread.
+            Dispatcher.Invoke(new Action(() =>
             {
-                Style = OutputTextStyle,
-                Text = outputText
-            });
+                CurrentOutputBlock.Inlines.Add(new Run
+                {
+                    Style = OutputTextStyle,
+                    Text = outputText
+                });
 
-            ScrollToBottom();
+                ScrollToBottom();
+            }));
         }
 
         /// <summary>
@@ -136,8 +184,12 @@ namespace WinShell.UIManagement
         /// </summary>
         public void ScrollToBottom()
         {
-            viewOutputView.ScrollToBottom();
-            viewOutputView.ScrollToLeftEnd();
+            // Run update on UI thread.
+            Dispatcher.Invoke(new Action(() =>
+            {
+                viewOutputView.ScrollToBottom();
+                viewOutputView.ScrollToLeftEnd();
+            }));
         }
     }
 }

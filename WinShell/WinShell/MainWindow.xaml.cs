@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -251,39 +252,130 @@ namespace WinShell
         /// <summary>
         /// Handles the "preview key down" event for the command line edit control.
         /// </summary>
-        /// <param name="sender">The object trigger this event.</param>
+        /// <param name="sender">The object triggering this event.</param>
         /// <param name="e">Arguments associated with this event.</param>
         private void txtCommand_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            switch (e.Key)
+            if (!UIManager.DefaultShellSession.UiRedirectionActive)
             {
-                // If the Enter key was pressed, attempt to parse and execute the command specified in the command line edit control.
-                case Key.Enter:
-                    var command = txtCommand.Text;
-                    CommandHistory.Add(command);
-                    UIManager.DefaultShellSession.ProcessCommand(command);
-                    UIManager.PresentCommandPrompt();
-                    e.Handled = true;
-                    break;
+                switch (e.Key)
+                {
+                    // If the Enter key was pressed, attempt to parse and execute the command specified in the command line edit control.
+                    case Key.Enter:
+                        var command = txtCommand.Text;
+                        CommandHistory.Add(command);
+                        UIManager.DefaultShellSession.ProcessCommand(command);
+                        UIManager.PresentCommandPrompt();
+                        e.Handled = true;
+                        break;
 
-                // If the Esc key was pressed, discard the contents of the command line edit control and wait for a new command.
-                case Key.Escape:
-                    UIManager.PresentCommandPrompt();
-                    e.Handled = true;
-                    break;
+                    // If the Esc key was pressed, discard the contents of the command line edit control and wait for a new command.
+                    case Key.Escape:
+                        UIManager.PresentCommandPrompt();
+                        e.Handled = true;
+                        break;
 
-                // If the Up arrow was pressed, replace the contents of the command line edit control with the previous entry in the command history.
-                case Key.Up:
-                    ShowCommandFromHistory(-1);
-                    e.Handled = true;
-                    break;
+                    // If the Up arrow was pressed, replace the contents of the command line edit control with the previous entry in the command history.
+                    case Key.Up:
+                        ShowCommandFromHistory(-1);
+                        e.Handled = true;
+                        break;
 
-                // If the Down arrow was pressed, replace the contents of the command line edit control with the next entry in the command history.
-                case Key.Down:
-                    ShowCommandFromHistory(1);
-                    e.Handled = true;
-                    break;
+                    // If the Down arrow was pressed, replace the contents of the command line edit control with the next entry in the command history.
+                    case Key.Down:
+                        ShowCommandFromHistory(1);
+                        e.Handled = true;
+                        break;
+                }
+            }
+            else
+            {
+                var kc = new KeyConverter();
+                var chars = GetKeyString(e.Key, e.KeyboardDevice.Modifiers);
+                if (chars.Length > 0)
+                {
+                    UIManager.DefaultShellSession.UiTargetStandardIOStream.Write(chars[0]);
+                }
+                e.Handled = true;
             }
         }
+        public static string GetKeyString(Key key, ModifierKeys modifiers)
+        {
+            string keyStr = string.Empty;
+            if (key != Key.None)
+            {
+                // Setup modifiers
+                //if (modifiers.HasFlag(ModifierKeys.Control))
+                //    result += "Ctrl + ";
+                //if (modifiers.HasFlag(ModifierKeys.Alt))
+                //    result += "Alt + ";
+                //if (modifiers.HasFlag(ModifierKeys.Shift))
+                //    result += "Shift + ";
+                // Get string representation
+                int keyInt = (int)key;
+                switch (key)
+                {
+                    case Key.Enter:
+                        keyStr = "\n";
+                        break;
+
+                    case Key.Space:
+                        keyStr = " ";
+                        break;
+
+                    case Key.Tab:
+                        keyStr = "\t";
+                        break;
+
+                    default:
+                        /*// Numeric keys are returned without the 'D'
+                        if (key >= Key.D0 && key <= Key.D9)
+                            //keyStr = char.ToString((char)(key - Key.D0 + '0'));
+                            keyStr = KeyCodeToUnicode(key);
+                        // Char keys are returned directly
+                        else if (key >= Key.A && key <= Key.Z)
+                            keyStr = KeyCodeToUnicode(key);
+                            //keyStr = char.ToString((char)((key - Key.A + 'A') + (modifiers.HasFlag(ModifierKeys.Shift) ? 0 : ('a' - 'A'))));
+                        // If the key is a keypad operation (Add, Multiply, ...) or an 'Oem' key, P/Invoke
+                        else if ((keyInt >= 84 && keyInt <= 89) || keyInt >= 140)*/
+                            keyStr = KeyCodeToUnicode(key);
+                        break;
+                }
+            }
+
+            return keyStr;
+        }
+
+        private static string KeyCodeToUnicode(Key key)
+        {
+            byte[] keyboardState = new byte[255];
+            bool keyboardStateStatus = GetKeyboardState(keyboardState);
+
+            if (!keyboardStateStatus)
+            {
+                return "";
+            }
+
+            uint virtualKeyCode = (uint)KeyInterop.VirtualKeyFromKey(key);
+            uint scanCode = MapVirtualKey(virtualKeyCode, 0);
+            IntPtr inputLocaleIdentifier = GetKeyboardLayout(0);
+
+            StringBuilder result = new StringBuilder();
+            ToUnicodeEx(virtualKeyCode, scanCode, keyboardState, result, (int)5, (uint)0, inputLocaleIdentifier);
+
+            return result.ToString();
+        }
+
+        [DllImport("user32.dll")]
+        static extern bool GetKeyboardState(byte[] lpKeyState);
+
+        [DllImport("user32.dll")]
+        static extern uint MapVirtualKey(uint uCode, uint uMapType);
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetKeyboardLayout(uint idThread);
+
+        [DllImport("user32.dll")]
+        static extern int ToUnicodeEx(uint wVirtKey, uint wScanCode, byte[] lpKeyState, [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pwszBuff, int cchBuff, uint wFlags, IntPtr dwhkl);
     }
 }

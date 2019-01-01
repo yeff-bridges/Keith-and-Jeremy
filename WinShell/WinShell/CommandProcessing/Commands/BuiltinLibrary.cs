@@ -25,6 +25,7 @@ namespace WinShell
         DeleteFile,
 
         //Misc
+        ClearScreen,
         Mathematica,
         Execute,
         Launch,
@@ -80,6 +81,7 @@ namespace WinShell
                 { "chmod", SingleCommandType.ChMod },
                 { "help", SingleCommandType.Help },
                 { "exit", SingleCommandType.Exit },
+                { "cls", SingleCommandType.ClearScreen },
                 { "math" , SingleCommandType.Mathematica},
             };
 
@@ -132,6 +134,17 @@ namespace WinShell
                 //alternate exit status to be determined later
             }
 
+            return 0;
+        }
+
+        /// <summary>
+        /// Clears the console output window.
+        /// </summary>
+        /// <param name="args">Arguments for the command.</param>
+        /// <returns>Returns an integer representing the exit status of the operation.</returns>
+        private int CommandClearScreen(IEnumerable<string> args)
+        {
+            _executor.ClearOutput();
             return 0;
         }
 
@@ -246,7 +259,55 @@ namespace WinShell
         {
             try
             {
-                Process.Start(args.ElementAt(0));
+                StringBuilder argsString = new StringBuilder();
+                args.Skip(1).ToList().ForEach(s => argsString.Append($"{s} "));
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = args.ElementAt(0),
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardError = true,
+                    Arguments = argsString.ToString().TrimEnd(' ')
+                };
+
+                var process = Process.Start(startInfo);
+
+                // Handle redirected standard input and output I/O on via a background task.
+                Task.Run(() =>
+                {
+                    var wasInputRedirected = _executor.EnableInputRedirection(true, process.StandardInput);
+
+                    var output = new char[1024];
+                    int stdinCharCount;
+                    do
+                    {
+                        stdinCharCount = process.StandardOutput.Read(output, 0, output.Length);
+                        if (stdinCharCount > 0)
+                        {
+                            _executor.WriteOutputText(new string(output, 0, stdinCharCount));
+                        }
+                    } while (stdinCharCount > 0);
+
+                    _executor.EnableInputRedirection(wasInputRedirected, null);
+                });
+
+                // Handle redirected standard-error I/O on via a background task.
+                Task.Run(() =>
+                {
+                    var output = new char[1024];
+                    int stdinErrorCount;
+                    do
+                    {
+                        stdinErrorCount = process.StandardError.Read(output, 0, output.Length);
+                        if (stdinErrorCount > 0)
+                        {
+                            _executor.WriteOutputText(new string(output, 0, stdinErrorCount));
+                        }
+                    } while (stdinErrorCount > 0);
+                });
             }
             catch (Exception e)
             {
@@ -310,6 +371,10 @@ namespace WinShell
                 {
                     case SingleCommandType.ChangeDirectory:
                         CommandCD(command.GetArgs());
+                        break;
+
+                    case SingleCommandType.ClearScreen:
+                        CommandClearScreen(command.GetArgs());
                         break;
 
                     case SingleCommandType.PrintCurrentDirectory:
