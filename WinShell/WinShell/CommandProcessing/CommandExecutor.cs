@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WinShell.UIManagement;
+using System.Diagnostics;
 
 namespace WinShell
 {
@@ -35,32 +36,79 @@ namespace WinShell
         }
 
         /// <summary>
-        /// Used to call the built-in method that handles the command passed to this method.
-        /// </summary>
-        /// <param name="command">The command from the user to be executed.</param>
-        public void ExecuteSingleProcessCommand(ProcessorCommand command)
-        {
-            _outputWindow = command.ConsoleWindow;
-            _processor.Builtins.runCommand(command, true);
-            return;
-        }
-
-        /// <summary>
-        /// Will be used in the future to execute a multiple process command.
-        /// </summary>
-        /// <param name="command">The command from the user to be executed.</param>
-        public void ExecuteMultipleProcessCommand(ProcessorCommand command)
-        {
-            _outputWindow = command.ConsoleWindow;
-            return;
-        }
-
-        /// <summary>
         /// Gets the path to the current working directory.
         /// </summary>
         public string GetCurrentWorkingDirectory()
         {
             return Directory.GetCurrentDirectory();
+        }
+
+
+        /// <summary>
+        /// Creates a process specified by the list of arguments passed.
+        /// <param name="args">Set of arguments, the first being the program to launch.</param>
+        /// <returns>A value indicating whether we were able to successfully launch a new process.</returns>
+        public bool Launch(string[] args)
+        {
+            try
+            {
+                StringBuilder argsString = new StringBuilder();
+                args.Skip(1).ToList().ForEach(s => argsString.Append($"{s} "));
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = args.ElementAt(0),
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardError = true,
+                    Arguments = argsString.ToString().TrimEnd(' ')
+                };
+
+                var process = Process.Start(startInfo);
+
+                // Handle redirected standard input and output I/O on via a background task.
+                Task.Run(() =>
+                {
+                    var wasInputRedirected = EnableInputRedirection(true, process.StandardInput);
+
+                    var output = new char[1024];
+                    int stdinCharCount;
+                    do
+                    {
+                        stdinCharCount = process.StandardOutput.Read(output, 0, output.Length);
+                        if (stdinCharCount > 0)
+                        {
+                            WriteOutputText(new string(output, 0, stdinCharCount));
+                        }
+                    } while (stdinCharCount > 0);
+
+                    EnableInputRedirection(wasInputRedirected, null);
+                });
+
+                // Handle redirected standard-error I/O on via a background task.
+                Task.Run(() =>
+                {
+                    var output = new char[1024];
+                    int stdinErrorCount;
+                    do
+                    {
+                        stdinErrorCount = process.StandardError.Read(output, 0, output.Length);
+                        if (stdinErrorCount > 0)
+                        {
+                            WriteOutputText(new string(output, 0, stdinErrorCount));
+                        }
+                    } while (stdinErrorCount > 0);
+                });
+            }
+            catch (Exception e)
+            {
+                WriteInfoText($"Command failed: {e.Message}\n");
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

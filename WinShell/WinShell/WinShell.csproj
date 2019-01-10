@@ -35,6 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
@@ -58,12 +59,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CommandProcessing\Commands\BuiltinLibrary.cs" />
-    <Compile Include="CommandProcessing\CommandExecutor.cs" />
     <Compile Include="CommandProcessing\CommandParser.cs" />
-    <Compile Include="CommandProcessing\Commands\MultiProcessCommand.cs" />
+    <Compile Include="CommandProcessing\CommandExecutor.cs" />
+    <Compile Include="CommandProcessing\Commands\BuiltinCommands\BuiltinHandler.cs" />
+    <Compile Include="CommandProcessing\Commands\BuiltinCommands\BuiltinLibrary.cs" />
+    <Compile Include="CommandProcessing\Commands\CommandDescriptor.cs" />
+    <Compile Include="CommandProcessing\Commands\ICommandHandler.cs" />
+    <Compile Include="CommandProcessing\Commands\ICommandLibrary.cs" />
+    <Compile Include="CommandProcessing\Commands\InvalidCommandException.cs" />
+    <Compile Include="CommandProcessing\LibraryManager.cs" />
     <Compile Include="RunShellRequestCommand.cs" />
-    <Compile Include="CommandProcessing\Commands\SingleProcessCommand.cs" />
     <Compile Include="UIManagement\ConsoleWindow.xaml.cs">
       <DependentUpon>ConsoleWindow.xaml</DependentUpon>
     </Compile>
@@ -90,7 +95,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandProcessing\Commands\ProcessorCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -115,7 +119,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

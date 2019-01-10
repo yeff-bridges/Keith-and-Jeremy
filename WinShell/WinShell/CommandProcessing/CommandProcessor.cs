@@ -37,14 +37,16 @@ namespace WinShell
         /// <summary>
         /// Gets the built-in commands associated with this command processor instance.
         /// </summary>
-        public BuiltinLibrary Builtins { get; private set; }
+        public LibraryManager LibManager { get; private set; }
 
         public CommandProcessor(UIManager uiManager)
         {
             UIManager = uiManager;
+            LibManager = new LibraryManager(this);
             Executor = new CommandExecutor(this);
-            Builtins = new BuiltinLibrary(this);
             Parser = new CommandParser(this);
+
+            LibManager.initLibraries();
         }
 
         /// <summary>
@@ -64,24 +66,16 @@ namespace WinShell
             // For command execution, switch to the session's current directory.
             Directory.SetCurrentDirectory(shellSession.CurrentDirectory);
 
+            int lastCommandResult;
+
             try
             {
-                ProcessorCommand pCommand = Parser.Parse(command);
-                if (pCommand is SingleProcessCommand)
-                {
-                    pCommand.ConsoleWindow = Window;
-                    Executor.ExecuteSingleProcessCommand(pCommand);
-                }
-                else if (pCommand is MultiProcessCommand)
-                {
-                    pCommand.ConsoleWindow = Window;
-                    Executor.ExecuteMultipleProcessCommand(pCommand);
-                }
+                List<string> argList = Parser.Parse(command);
+                lastCommandResult = LibManager.runCommand(argList.ToArray());
             }
-            catch(KeyNotFoundException e)
+            catch (InvalidCommandException e)
             {
-                Executor.WriteOutputText("Command not recognized.");
-                return false; //return value may be used later, but unlikely
+                Executor.WriteInfoText(e.Message);
             }
 
             // Update the session's current directory based on the result of the command.
