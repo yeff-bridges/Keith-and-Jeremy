@@ -83,21 +83,7 @@ namespace WinShell
                 {
                     if (c == ' ')
                     {
-                        foreach (string s in _commandStrings)
-                        {
-                            if (token.ToString().ToLowerInvariant() == s.ToLowerInvariant())
-                            {
-                                EasyAdd<string>(args1, token.ToString());
-                                token.Clear();
-                                validCommand = true;
-                                break;
-                            }
-                        }
-                        //If the token matches none of the known commands, then no command can be made
-                        if (!validCommand)
-                        {
-                            throw new InvalidCommandException();
-                        }
+                        validCommand = ValidateCommand(token.ToString());
                     }
                     else
                     {
@@ -106,6 +92,12 @@ namespace WinShell
                 }
             }
             EasyAdd<string>(args1, token.ToString());
+
+            if (!validCommand)
+            {
+                ValidateCommand(args1.ElementAt(0));
+            }
+
             return args1;
         }   
 
@@ -124,6 +116,25 @@ namespace WinShell
                     list.Add(item);
                 }
             }
+        }
+
+        private bool ValidateCommand(string t)
+        {
+            bool valid = false;
+            foreach (string s in _commandStrings)
+            {
+                if (t.ToLowerInvariant() == s.ToLowerInvariant())
+                {
+                    valid = true;
+                }
+            }
+            //If the token matches none of the known commands, then no command can be made
+            if (!valid)
+            {
+                throw new InvalidCommandException();
+            }
+
+            return false;
         }
     }
 }

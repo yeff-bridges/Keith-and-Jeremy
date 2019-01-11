@@ -27,6 +27,11 @@ namespace WinShell
         public List<string> CommandStrings { get; private set; } = new List<string>();
 
         /// <summary>
+        /// A string used to hold any error messages
+        /// </summary>
+        public string ErrorString { get; private set; }
+
+        /// <summary>
         /// A dictionary associating elements of CommandStrings with ShellCommandEntries, for use in 
         /// </summary>
         private Dictionary<string, ShellCommandEntry> _commands = new Dictionary<string, ShellCommandEntry>();
@@ -64,7 +69,7 @@ namespace WinShell
         /// The "MyDlls" key in the config file is store the file path of the directory full of .dll files.
         /// If "MyDlls" is "null", then only the builtin library is loaded, and no attempt is made to load any others.
         /// </summary>
-        /// <returns> Returns an 0 if all libraries succesfully loaded. </returns>
+        /// <returns> Returns an 0 if all libraries succesfully loaded, and 1 otherwise. </returns>
         public int initLibraries()
         {
             var builtin = new BuiltinLibrary();
@@ -80,13 +85,23 @@ namespace WinShell
                     {
                         Dll = Assembly.LoadFrom($"{filename}");
                         Type[] types = Dll.GetExportedTypes();
-                        dynamic d = Activator.CreateInstance(types[1]);
-                        d.InitializeCommands(Processor);
+                        foreach (Type t in types)
+                        {
+                            dynamic d = Activator.CreateInstance(t);
+                            try
+                            {
+                                d.InitializeCommands(Processor);
+                            }
+                            catch (Exception e)
+                            {
+                            }
+                        }
                     }
                 }
                 catch (Exception e)
                 {
-                    Processor.Executor.WriteInfoText(e.Message);
+                    ErrorString = e.Message;
+                    return 1;
                 }
             }
 
