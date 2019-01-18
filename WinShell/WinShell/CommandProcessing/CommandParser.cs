@@ -31,7 +31,7 @@ namespace WinShell
         ///           any remaining arguments.                              </returns>
         public List<string> Parse(string command)
         { 
-            List<string> args1 = new List<string>();
+            List<string> args = new List<string>();
             StringBuilder token = new StringBuilder();
             bool withinQuotes = false, validCommand = false;
 
@@ -47,7 +47,7 @@ namespace WinShell
                         // If we've encountered our closing quote, add the token to our arg list and prepare to start a new token.
                         if (c == '"')
                         {
-                            EasyAdd<string>(args1, token.ToString());
+                            EasyAdd<string>(args, token.ToString());
                             token.Clear();
                             withinQuotes = false;
                             break;
@@ -69,7 +69,7 @@ namespace WinShell
                     //If we're currently processing a non-quoted string...
                     if (c == ' ')
                     { 
-                        EasyAdd<string>(args1, token.ToString());
+                        EasyAdd<string>(args, token.ToString());
                         token.Clear();
                     }
                     else
@@ -84,6 +84,8 @@ namespace WinShell
                     if (c == ' ')
                     {
                         validCommand = ValidateCommand(token.ToString());
+                        args.Add(token.ToString());
+                        token.Clear();
                     }
                     else
                     {
@@ -91,14 +93,14 @@ namespace WinShell
                     }
                 }
             }
-            EasyAdd<string>(args1, token.ToString());
+            EasyAdd<string>(args, token.ToString());
 
             if (!validCommand)
             {
-                ValidateCommand(args1.ElementAt(0));
+                ValidateCommand(args.ElementAt(0));
             }
 
-            return args1;
+            return args;
         }   
 
         /// <summary>
@@ -126,6 +128,7 @@ namespace WinShell
                 if (t.ToLowerInvariant() == s.ToLowerInvariant())
                 {
                     valid = true;
+                    return valid;
                 }
             }
             //If the token matches none of the known commands, then no command can be made
