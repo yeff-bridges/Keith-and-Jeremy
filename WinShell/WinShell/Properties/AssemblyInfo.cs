@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("WinShell")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("HP Inc.")]
+[assembly: AssemblyCompany("Jeremy Frechette")]
 [assembly: AssemblyProduct("WinShell")]
-[assembly: AssemblyCopyright("Copyright © HP Inc. 2018")]
+[assembly: AssemblyCopyright("Copyright © Jeremy Frechette 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

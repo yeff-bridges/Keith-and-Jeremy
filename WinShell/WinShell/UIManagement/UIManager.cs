@@ -8,14 +8,18 @@ using System.Threading.Tasks;
 namespace WinShell.UIManagement
 {
     /// <summary>
-    /// A class for managing the UI windows and input/output streams.
+    /// A class for managing the UI windows and input/output streams for the various shell sessions.
     /// </summary>
+    /// <remarks>
+    /// In this current release, only a single shell session is supported. However, the groundwork has been
+    /// laid for supporting multiple shell sessions via a tabbed window arrangement.
+    /// </remarks>
     public class UIManager
     {
         /// <summary>
         /// Gets the default shell session to use for command processing.
         /// </summary>
-        public ShellSession DefaultShellSession { get; set; }
+        public ShellSession DefaultShellSession { get; private set; }
 
         /// <summary>
         /// Gets or sets the list of shell sessions.
@@ -53,7 +57,7 @@ namespace WinShell.UIManagement
             MainWindow.viewCommandOutput.Children.Clear();
             MainWindow.viewCommandOutput.Children.Add(DefaultShellSession.Window);
 
-            // The our processes current directory as the initial current directory for the initial shell session.
+            // Use our thread's current directory as the initial current directory for the initial shell session.
             DefaultShellSession.CurrentDirectory = Directory.GetCurrentDirectory();
         }
 

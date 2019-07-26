@@ -10,7 +10,7 @@ namespace WinShell.UIManagement
 {
     /// <summary>
     /// A class representing the combination of output window, current directory, etc. that
-    /// makes up a UI session with the shell.
+    /// makes up a UI session within the shell.
     /// </summary>
     public class ShellSession
     {
@@ -62,7 +62,6 @@ namespace WinShell.UIManagement
         /// <param name="command">User input taken from window to be used as a command.</param>
         public void ProcessCommand(string command)
         {
-            //Processor.ProcessCommand(command, this);
             Window.StartNextOutputGrouping();
             CommandProcessor.ProcessCommand(command, this);
         }

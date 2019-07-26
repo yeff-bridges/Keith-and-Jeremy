@@ -17,8 +17,15 @@ using System.Windows.Shapes;
 namespace WinShell.UIManagement
 {
     /// <summary>
-    /// Interaction logic for ConsoleWindow.xaml
+    /// A class representing a console output window.
     /// </summary>
+    /// <remarks>
+    /// This is a prototype implementation that uses a single StackPanel to present output,
+    /// with each output request being handled by appending a new TextBlock to the StackPanel. While this
+    /// is fine for a prototype, it ultimately needs to be replaced with a circular-buffer-based implementation
+    /// with text-selection support. As such, this prototype implementation will eventually explode if the "cls" 
+    /// command isn't periodically used to clear old output.
+    /// </remarks>
     public partial class ConsoleWindow : UserControl
     {
         /// <summary>
@@ -93,7 +100,7 @@ namespace WinShell.UIManagement
         /// <summary>
         /// Enables or disables input redirection for the corresponding shell session.
         /// </summary>
-        /// <param name="enabled">A value indicating whether the enable input redirection.</param>
+        /// <param name="enabled">A value indicating whether to enable input redirection.</param>
         /// <param name="targetStream">The stream to use for writing standard-input characters, if enabled is true.</param>
         /// <returns>The previous input-redirection-enable value.</returns>
         public bool EnableInputRedirection(bool enabled, StreamWriter targetStream)

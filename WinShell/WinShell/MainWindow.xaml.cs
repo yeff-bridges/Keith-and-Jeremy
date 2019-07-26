@@ -23,8 +23,13 @@ using WinShell.UIManagement;
 namespace WinShell
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// A class representing the main application window, housing the command line window
+    /// as well as one or more tabbed output windows.
     /// </summary>
+    /// <remarks>
+    /// Although the groundwork has been laid for supporting multiple output windows in a
+    /// tabbed layout, this initial implementation only uses a single output window.
+    /// </remarks>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         /// <summary>
@@ -72,10 +77,19 @@ namespace WinShell
         // The path to the current working directory.
         private string _currentWorkingDirectory;
 
+        /// <summary>
+        /// Gets or sets the command history collection associated with the main window.
+        /// </summary>
         private List<string> CommandHistory { get; set; } = new List<string>();
 
+        /// <summary>
+        /// Gets or sets the index of the last displayed command line history entry.
+        /// </summary>
         private int IndexOfLastHistoryDisplayed { get; set; }
 
+        /// <summary>
+        /// Gets or sets the command processor instance associated with the main window
+        /// </summary>
         private CommandProcessor Processor { get; set; }
 
         /// <summary>
@@ -88,6 +102,10 @@ namespace WinShell
         /// </summary>
         private HotKeyRegister _hotKey = null;
 
+        /// <summary>
+        /// Default constructor for our main window, responsible for "bootstrapping" the initial
+        /// shell session.
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
@@ -102,7 +120,7 @@ namespace WinShell
         /// <summary>
         /// Handles the "Loaded" event for our main window, letting us know when it is "open for business".
         /// </summary>
-        /// <param name="sender">The object trigger this event.</param>
+        /// <param name="sender">The object that triggered this event.</param>
         /// <param name="e">Arguments associated with this event.</param>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -151,7 +169,7 @@ namespace WinShell
         /// <summary>
         /// Handle presses of our hotkey.
         /// </summary>
-        /// <param name="sender">The object trigger this event.</param>
+        /// <param name="sender">The object that triggered this event.</param>
         /// <param name="e">Arguments associated with this event.</param>
         private void HotKeyPressed(object sender, EventArgs e)
         {
@@ -195,7 +213,7 @@ namespace WinShell
         /// <summary>
         /// Handles "click" events for the "Current Directory" button.
         /// </summary>
-        /// <param name="sender">The object trigger this event.</param>
+        /// <param name="sender">The object that triggered this event.</param>
         /// <param name="e">Arguments associated with this event.</param>
         private void btnOpenCurrentDir_Click(object sender, RoutedEventArgs e)
         {
@@ -252,10 +270,11 @@ namespace WinShell
         /// <summary>
         /// Handles the "preview key down" event for the command line edit control.
         /// </summary>
-        /// <param name="sender">The object triggering this event.</param>
+        /// <param name="sender">The object that triggered this event.</param>
         /// <param name="e">Arguments associated with this event.</param>
         private void txtCommand_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            // If shell input is not being redirected, handle special keys in the UI.
             if (!UIManager.DefaultShellSession.UiRedirectionActive)
             {
                 switch (e.Key)
@@ -290,6 +309,7 @@ namespace WinShell
             }
             else
             {
+                // Else forward the key to the associated standard output stream.
                 var kc = new KeyConverter();
                 var chars = GetKeyString(e.Key, e.KeyboardDevice.Modifiers);
                 if (chars.Length > 0)
@@ -299,6 +319,8 @@ namespace WinShell
                 e.Handled = true;
             }
         }
+
+        // Experimental code for translating a UI key into a code suitable for writing to the standard output stream.
         public static string GetKeyString(Key key, ModifierKeys modifiers)
         {
             string keyStr = string.Empty;
