@@ -1,0 +1,23 @@
+On this document we will list and categorize some longterm goals for the project so that we can better know
+and plan for what we're building towards. 
+
+Functionality (up for debate):
+  1) I'd like the shell to feel similar to Bash and PS, that way users of the two can easily pick up how
+     to use this one and write scripts with it like any other shell. The main difference is that it will
+     be open source, so users can do more than simply modify a config file to modify it. This means:
+       i)    Similar syntax
+       ii)   Fully scriptable language (including comments and Wildcard support)
+       iii)  Shell arguments implicate running in script mode
+       iv)   Environment variables
+       v)    Options for Inter-process communication
+       vi)   Any other nice bells and whistles we find (to be continued...)
+   2) The support for config files is very light as of now. In addition to custom command libraries, I'd like to 
+      add a few other things to allow the config file to support a fully customizable startup environment:
+       i)    Aliases
+       ii)   Changes to the interface (font colors, dimensions, etc)
+       iii)  Startup scripts
+       iv)   And more (to be continued...)
+
+Interface:
+
+Other:
