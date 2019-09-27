@@ -13,21 +13,34 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
     /// </summary>
     public class BuiltinLibrary : ICommandLibrary
     {
+        // May make these fields necessary in the ICommandLibrary interface
+        private LibraryManager _libManager;
         private static CommandDescriptor[] _commands = new CommandDescriptor[]
         {
-            new CommandDescriptor { Name = "Help", Description = "Prints useless help message" },
-            new CommandDescriptor { Name = "Cd", Description = "Prints useless help message" },
-            new CommandDescriptor { Name = "Dir", Description = "Prints useless help message" },
-            new CommandDescriptor { Name = "Pwd", Description = "Prints useless help message" },
-            new CommandDescriptor { Name = "Exec", Description = "Prints useless help message" },
-            new CommandDescriptor { Name = "Exit", Description = "Prints useless help message" },
-            new CommandDescriptor { Name = "Cls", Description = "Prints useless help message" },
+            new CommandDescriptor { Name = "Help", Description = "Prints currently useless help message" },
+            new CommandDescriptor { Name = "Cd", Description = "Changes directory. Syntax: cd [absolute/relative path to directory]" },
+            new CommandDescriptor { Name = "Dir", Description = "Lists stat call of all directories or files in current directory." },
+            new CommandDescriptor { Name = "Pwd", Description = "Prints path to current working directory." },
+            new CommandDescriptor { Name = "Exec", Description = "Used to execute a file named identically to a command. Syntax: Exec [filename] [args...]" },
+            new CommandDescriptor { Name = "Exit", Description = "Properly close current shell session." },
+            new CommandDescriptor { Name = "Cls", Description = "Clear shell display of recent input." },
         };
 
-        public bool InitializeCommands(CommandProcessor processor)
+        // Will likely make this contructor part of ICommandLibrary in the future.
+        public BuiltinLibrary(LibraryManager libManager)
+        {
+            _libManager = libManager;
+        }
+
+        // Will likely make a default version of this method in the interface
+        /// <summary>
+        /// Associates all commands in the BuiltinLibrary with the BuiltinHandler instantiated.
+        /// </summary>
+        /// <returns>True if commands successfully registered, false if otherwise</returns>
+        public bool InitializeCommands()
         {
             var handler = new BuiltinHandler();
-            return processor.LibManager.registerCommands(_commands, handler);
+            return _libManager.registerCommands(_commands, handler);
         }
     }
 }

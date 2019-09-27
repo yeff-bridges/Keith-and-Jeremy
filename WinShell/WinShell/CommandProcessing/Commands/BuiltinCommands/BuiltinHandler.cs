@@ -11,41 +11,42 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
     /// <summary>
     /// Handler Object for the BuiltinLibrary. The ExecuteCommand method may be called by the
     /// LibraryManager object of the CommandProcessor to run any command in the BuiltinLibrary
-    /// via method called by the switch structure.
+    /// via method called by the switch structure. Each method returns an exit status, with 0 
+    /// on success.
     /// </summary>
     public class BuiltinHandler : ICommandHandler
     {
-        public int ExecuteCommand(CommandDescriptor descriptor, string[] args, CommandProcessor processor){
+        public int ExecuteCommand(CommandDescriptor descriptor, string[] args, CommandExecutor executor){
 
             int result;
             switch (descriptor.Name)
             {
                 case "Help":
-                    result = CommandHelp(descriptor, args, processor);
+                    result = CommandHelp(descriptor, args, executor);
                     break;
 
                 case "Cd":
-                    result = CommandCD(descriptor, args, processor);
+                    result = CommandCD(descriptor, args, executor);
                     break;
 
                 case "Exit":
-                    result = CommandExit(descriptor, args, processor);
+                    result = CommandExit(descriptor, args, executor);
                     break;
 
                 case "Pwd":
-                    result = CommandPrintWorkingDirectory(descriptor, args, processor);
+                    result = CommandPrintWorkingDirectory(descriptor, args, executor);
                     break;
 
                 case "Dir":
-                    result = CommandDirectory(descriptor, args, processor);
+                    result = CommandDirectory(descriptor, args, executor);
                     break;
 
                 case "Exec":
-                    result = CommandExecute(descriptor, args, processor);
+                    result = CommandExecute(descriptor, args, executor);
                     break;
 
                 case "Cls":
-                    result = CommandClearScreen(descriptor, args, processor);
+                    result = CommandClearScreen(descriptor, args, executor);
                     break;
 
                 default:
@@ -56,13 +57,19 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
             return result;
         }
 
-        private int CommandHelp(CommandDescriptor descriptor, string[] args, CommandProcessor processor)
+        /// <summary>
+        /// Prints this very useful help message to the window
+        /// </summary>
+        private int CommandHelp(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         {
-            processor.Executor.WriteOutputText("We all need help, man.");
+            executor.WriteOutputText("We all need help, man.");
             return 0;
         }
 
-        private int CommandCD(CommandDescriptor descriptor, string[] args, CommandProcessor processor)
+        /// <summary>
+        /// Changes the working directory (may wish to tweak if multiple windows are controlled by the same processor)
+        /// </summary>
+        private int CommandCD(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         {
             try
             {
@@ -70,7 +77,7 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
             }
             catch (Exception ex)
             {
-                processor.Executor.WriteInfoText($"Command failed: {ex.Message}\n");
+                executor.WriteInfoText($"Command failed: {ex.Message}\n");
                 //alternate exit status to be determined later
             }
 
@@ -80,20 +87,16 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
         /// <summary>
         /// Clears the console output window.
         /// </summary>
-        /// <param name="args">Arguments for the command.</param>
-        /// <returns>Returns an integer representing the exit status of the operation.</returns>
-        private int CommandClearScreen(CommandDescriptor descriptor, string[] args, CommandProcessor processor)
+        private int CommandClearScreen(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         { 
-            processor.Executor.ClearOutput();
+            executor.ClearOutput();
             return 0;
         }
 
         /// <summary>
         /// Exits the shell.
         /// </summary>
-        /// <param name="args"></param>
-        /// <returns>Returns an integer representing the exit status of the operation.</returns>
-        private int CommandExit(CommandDescriptor descriptor, string[] args, CommandProcessor processor)
+        private int CommandExit(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         {
             Environment.Exit(0); //This feels slow. The close API is another option
             return 0;
@@ -102,31 +105,27 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
         /// <summary>
         /// Prints the current working directory.
         /// </summary>
-        /// <param name="args"></param>
-        /// <returns>Returns an integer representing the exit status of the operation.</returns>
-        private int CommandPrintWorkingDirectory(CommandDescriptor descriptor, string[] args, CommandProcessor processor)
+        private int CommandPrintWorkingDirectory(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         {
-            processor.Executor.WriteOutputText($"{processor.Executor.GetCurrentWorkingDirectory()}");
+            executor.WriteOutputText($"{executor.GetCurrentWorkingDirectory()}");
             return 0;
         }
 
         /// <summary>
         /// Displays a directory listing.
         /// </summary>
-        /// <param name="args">Command line arguments.</param>
-        /// <returns>An integer representing the exit status of the operation.</returns>
-        private int CommandDirectory(CommandDescriptor descriptor, string[] args, CommandProcessor processor)
+        private int CommandDirectory(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         {
             try
             {
-                var path = args.Count() >= 2 ? args.ElementAt(1) : processor.Executor.GetCurrentWorkingDirectory();
+                var path = args.Count() >= 2 ? args.ElementAt(1) : executor.GetCurrentWorkingDirectory();
                 IEnumerable<string> directories = Directory.EnumerateDirectories(path); //FLAG
                 IEnumerable<string> files = Directory.EnumerateFiles(path);
                 var targetDir = Path.GetFullPath(path);
 
                 // Display the directory banner.
-                processor.Executor.WriteOutputText("Directory of ");
-                processor.Executor.WriteCommandLink($"{targetDir}\n", $"cd \"{targetDir}\"");
+                executor.WriteOutputText("Directory of ");
+                executor.WriteCommandLink($"{targetDir}\n", $"cd \"{targetDir}\"");
 
                 // Display an output line for each directory in the listing.
                 foreach (var directory in directories)
@@ -137,10 +136,10 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
                     if (dirInfo.Exists)
                     {
                         var lastUpdated = dirInfo.LastWriteTime;
-                        processor.Executor.WriteOutputText($"{lastUpdated.ToString("MM/dd/yyyy")}  {lastUpdated.ToString("hh:mm tt")}    ");
-                        processor.Executor.WriteCommandLink($"<DIR>", $"dir \"{fullPath}\"");
-                        processor.Executor.WriteOutputText("          ");
-                        processor.Executor.WriteCommandLink($"{filespec}\n", $"cd \"{fullPath}\"");
+                        executor.WriteOutputText($"{lastUpdated.ToString("MM/dd/yyyy")}  {lastUpdated.ToString("hh:mm tt")}    ");
+                        executor.WriteCommandLink($"<DIR>", $"dir \"{fullPath}\"");
+                        executor.WriteOutputText("          ");
+                        executor.WriteCommandLink($"{filespec}\n", $"cd \"{fullPath}\"");
                     }
                 }
 
@@ -154,14 +153,14 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
                     {
                         var lastUpdated = fileInfo.LastWriteTime;
                         var length = fileInfo.Length;
-                        processor.Executor.WriteOutputText($"{lastUpdated.ToString("MM/dd/yyyy")}  {lastUpdated.ToString("hh:mm tt")}    {length.ToString("##,###,###,###").PadLeft(14)} ");
-                        processor.Executor.WriteCommandLink($"{filespec}\n", $"exec \"{fullPath}\"");
+                        executor.WriteOutputText($"{lastUpdated.ToString("MM/dd/yyyy")}  {lastUpdated.ToString("hh:mm tt")}    {length.ToString("##,###,###,###").PadLeft(14)} ");
+                        executor.WriteCommandLink($"{filespec}\n", $"exec \"{fullPath}\"");
                     }
                 }
             }
             catch (Exception ex)
             {
-                processor.Executor.WriteInfoText($"Command failed: {ex.Message}\n");
+                executor.WriteInfoText($"Command failed: {ex.Message}\n");
                 return -1;
             }
 
@@ -171,11 +170,9 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
         /// <summary>
         /// Executes the specified command as a new process without checking to see if it's an internal shell command.
         /// </summary>
-        /// <param name="args">Command line arguments.</param>
-        /// <returns>An integer representing the exit status of the operation.</returns>
-        private int CommandExecute(CommandDescriptor descriptor, string[] args, CommandProcessor processor)
+        private int CommandExecute(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         {
-            processor.Executor.Launch(args.Skip(1).ToArray());
+            executor.Launch(args.Skip(1).ToArray());
 
             return 0;
         }

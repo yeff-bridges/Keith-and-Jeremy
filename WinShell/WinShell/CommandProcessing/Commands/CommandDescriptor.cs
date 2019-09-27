@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace WinShell.CommandProcessing.Commands
 {
     /// <summary>
-    /// An object storying the Name and Description of a command a shell command.
-    /// This object is also used by the handler to decide how to execute a command 
-    /// with the given descriptor, and by the Library Manager to associate it with
-    /// the proper handler class.
+    /// An object storing the Name and Description of a command to be run by the shell.
+    /// The Name field is used by the corresponding ICommandHandler to know what command
+    /// to run in ExecuteCommand, and the Description is used for help messages involving
+    /// the command.
     /// </summary>
     public class CommandDescriptor
     {

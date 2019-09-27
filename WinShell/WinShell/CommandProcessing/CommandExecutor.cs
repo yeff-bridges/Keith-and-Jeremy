@@ -7,18 +7,16 @@ using System.Threading.Tasks;
 using WinShell.UIManagement;
 using System.Diagnostics;
 
+
+// Continue comments here
 namespace WinShell
 {
     /// <summary>
-    /// Class for taking a valid command object and executing it. Handles interactions between window and library.
+    /// Object Class that is used for executing valid commands. Handles interactions between window and library.
     /// </summary>
     public class CommandExecutor
     {
         private CommandProcessor _processor;
-
-        /// <summary>
-        /// The output window to use for the currently-executing command.
-        /// </summary>
         private ConsoleWindow _outputWindow;
 
         public CommandExecutor(CommandProcessor processor)
