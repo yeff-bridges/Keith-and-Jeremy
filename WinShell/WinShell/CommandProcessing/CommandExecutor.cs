@@ -70,7 +70,6 @@ namespace WinShell
                 Task.Run(() =>
                 {
                     var wasInputRedirected = EnableInputRedirection(true, process.StandardInput);
-
                     var output = new char[1024];
                     int stdinCharCount;
                     do
