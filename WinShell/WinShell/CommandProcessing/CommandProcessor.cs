@@ -51,11 +51,9 @@ namespace WinShell
         public CommandProcessor(UIManager uiManager)
         {
             UIManager = uiManager;
-            LibManager = new LibraryManager(this);
             Executor = new CommandExecutor(this);
-            Parser = new CommandParser(this);
-
-            LibManager.initLibraries();
+            Parser = new CommandParser(Executor);
+            LibManager = new LibraryManager(Executor);       
         }
 
         /// <summary>
