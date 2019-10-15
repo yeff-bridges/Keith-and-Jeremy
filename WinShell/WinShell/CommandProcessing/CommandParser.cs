@@ -9,22 +9,21 @@ using System.Threading.Tasks;
 namespace WinShell
 {   
     /// <summary>
-    /// Object class for parsing a string and outputing a new command object.
+    /// Object class for parsing a string and outputing a new command object. All lower level logic for how the 
+    /// Shell will actually read, fill, and break apart the strings that it is given will be handled here.
     /// </summary>
     public class CommandParser
     {
-        private List<string> _commandStrings;
-        private CommandProcessor _processor;
+        private CommandExecutor _executor;
 
         /// <summary>
         /// Constructor which stores the instantiating CommandProcessor's reference and
         /// a List<string> of valid command names determined _processor's corresponding LibraryManager.
         /// </summary>
         /// <param name="processor"></param>
-        public CommandParser(CommandProcessor processor)
+        public CommandParser(CommandExecutor executor)
         {
-            _processor = processor;
-            _commandStrings = _processor.LibManager.CommandStrings;
+            _executor = executor;
         }
 
         //  TO BE OVERHAULED SOON (see specs.txt on Git)
@@ -40,118 +39,55 @@ namespace WinShell
         { 
             List<string> args = new List<string>();
             StringBuilder token = new StringBuilder();
-            bool withinQuotes = false, validCommand = false;
+            bool withinDoubQuotes = false, withinSingQuotes = false;
 
             foreach (char c in command)
             {
-                if (validCommand)
+                switch (c)
                 {
-                    // Process quoted strings first. The string (with quotes removed) will be
-                    // treated as a single token.
-                    // If we're currently processing a quoted string...
-                    if (withinQuotes)
-                    {
-                        // If we've encountered our closing quote, add the token to our arg list and prepare to start a new token.
-                        if (c == '"')
-                        {
-                            EasyAdd(args, token.ToString());
-                            token.Clear();
-                            withinQuotes = false;
-                            break;
-                        }
-                        else
-                        {
-                            // Else add the character to the token.
-                            token.Append(c);
-                            continue;
-                        }
-                    }
-                    else if (c == '"')
-                    {
-                        // If we've encountered an opening quote, note it and skip to the next character.
-                        withinQuotes = true;
-                        continue;
-                    }
-
-                    //If we're currently processing a non-quoted string...
-                    if (c == ' ')
-                    { 
+                    case '\"' when withinDoubQuotes:
+                        withinDoubQuotes = false;
+                        break;
+                    case '\"' when !withinSingQuotes:
+                        withinDoubQuotes = true;
+                        break;
+                    case '\'' when withinSingQuotes:
+                        withinSingQuotes = false;
+                        break;
+                    case '\'' when !withinDoubQuotes:
+                        withinSingQuotes = true;
+                        break;
+                    case ' ' when !withinDoubQuotes && !withinSingQuotes:
                         EasyAdd(args, token.ToString());
                         token.Clear();
-                    }
-                    else
-                    {
+                        break;
+                    default:
                         token.Append(c);
-                    }
-                }
-                //We have not confirmed that the command we've encountered is valid
-                //No argument in quotes will be valid
-                else
-                {
-                    if (c == ' ')
-                    {
-                        validCommand = ValidateCommand(token.ToString());
-                        args.Add(token.ToString());
-                        token.Clear();
-                    }
-                    else
-                    {
-                        token.Append(c);
-                    }
+                        break;
                 }
             }
-            EasyAdd(args, token.ToString());
 
-            if (!validCommand)
+            if (withinDoubQuotes || withinSingQuotes)
             {
-                ValidateCommand(args.ElementAt(0));
+                string quote = withinSingQuotes ? "single" : "double";
+                _executor.WriteInfoText($"The input entered had an unclosed {quote} quote. Command Aborted.\n");
+                return new List<string>();
             }
+
+            EasyAdd(args, token.ToString());
 
             return args;
         }   
 
         /// <summary>
-        /// Helper function to assist storing tokens in parse. Written to be general for
-        /// the sake of progressing science ;)
+        /// Helper function to assist storing tokens in parse without storing empty strings.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="list"> A list to have an item inserted. </param>
-        /// <param name="item"> An item to be inserted in the above list. </param>
-        private void EasyAdd<T>(List<T> list, T item)
-        {
-            if (item != null)
+        private void EasyAdd(List<string> list, string str)
+        { 
+            if (!string.IsNullOrWhiteSpace(str))
             {
-                if (!(item.GetType() == typeof(string)) || !String.IsNullOrWhiteSpace(item as string))
-                {
-                    list.Add(item);
-                }
+                list.Add(str);
             }
-        }
-
-        /// <summary>
-        /// Helper function used by parse to check if the first token of the command string
-        /// (first token referenced by t) shows up in the list of possible commands.
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        private bool ValidateCommand(string t)
-        {
-            bool valid = false;
-            foreach (string s in _commandStrings)
-            {
-                if (t.ToLowerInvariant() == s.ToLowerInvariant())
-                {
-                    valid = true;
-                    return valid;
-                }
-            }
-            //If the token matches none of the known commands, then no command can be made
-            if (!valid)
-            {
-                throw new InvalidCommandException();
-            }
-
-            return false;
         }
     }
 }

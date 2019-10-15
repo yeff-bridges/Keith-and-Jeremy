@@ -49,6 +49,10 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
                     result = CommandClearScreen(descriptor, args, executor);
                     break;
 
+                case "Echo":
+                    result = CommandEcho(descriptor, args, executor);
+                    break;
+
                 default:
                     result = 1;
                     break;
@@ -68,12 +72,43 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
 
         /// <summary>
         /// Changes the working directory (may wish to tweak if multiple windows are controlled by the same processor)
+        /// The shortcut ~ -> %HOMEDRIVE%%HOMEPATH% is applied if the first part of the path is "~" or "~/".
+        /// Does not support any optional arguments.
         /// </summary>
         private int CommandCD(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         {
             try
             {
-                Directory.SetCurrentDirectory(args[1]);
+                if (args.Length > 2) 
+                {
+                    executor.WriteInfoText($"cd: No additional arguments are supported for cd.");
+                }
+                else if (args.Length == 1)
+                {
+                    executor.WriteInfoText("cd: Must include a path as argument to cd.");
+                }
+                
+                if (args[1].Length >= 1 && args[1][0] == '~') 
+                {
+                    if ((args[1].Length > 1 && (args[1][1] == '\\' || args[1][1] == '/') )|| args[1].Length==1)
+                    {
+                        string home = Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+                        Directory.SetCurrentDirectory(home);
+                        if (args[1].Length > 1) 
+                        {
+                            args[1] = args[1].Substring(2);
+                        }
+                        else
+                        {
+                            return 0;
+                        }
+                    }
+                }
+                if (args[1].Length > 0) 
+                {
+                    Directory.SetCurrentDirectory(args[1]);
+                }
+                
             }
             catch (Exception ex)
             {
@@ -90,6 +125,27 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
         private int CommandClearScreen(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         { 
             executor.ClearOutput();
+            return 0;
+        }
+
+        private int CommandEcho(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
+        {
+            if (args.Length > 1) 
+            {
+                StringBuilder toEcho = new StringBuilder(args[1]);
+                for (int i = 2; i < args.Length; i++)
+                {
+                    toEcho.Append(" ");
+                    toEcho.Append(args[i]);
+                }
+
+                executor.WriteOutputText(toEcho.ToString());
+            }
+            else 
+            {
+                executor.WriteOutputText("");
+            }
+
             return 0;
         }
 
@@ -172,9 +228,17 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
         /// </summary>
         private int CommandExecute(CommandDescriptor descriptor, string[] args, CommandExecutor executor)
         {
-            executor.Launch(args.Skip(1).ToArray());
+            try 
+            {
+                executor.Launch(args.Skip(1).ToArray());
+                return 0;
+            } 
+            catch (Exception e)
+            {
+                executor.WriteInfoText($"Exec failed: {e.Message}\n");
+            }
 
-            return 0;
+            return 1;
         }
     }
 }

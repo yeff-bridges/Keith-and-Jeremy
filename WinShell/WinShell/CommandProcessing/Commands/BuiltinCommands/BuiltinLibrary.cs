@@ -21,6 +21,7 @@ namespace WinShell.CommandProcessing.Commands.BuiltinCommands
             new CommandDescriptor { Name = "Cd", Description = "Changes directory. Syntax: cd [absolute/relative path to directory]" },
             new CommandDescriptor { Name = "Dir", Description = "Lists stat call of all directories or files in current directory." },
             new CommandDescriptor { Name = "Pwd", Description = "Prints path to current working directory." },
+            new CommandDescriptor { Name = "Echo", Description = "Prints to the console the parsed arguments that follow this command, if any."},
             new CommandDescriptor { Name = "Exec", Description = "Used to execute a file named identically to a command. Syntax: Exec [filename] [args...]" },
             new CommandDescriptor { Name = "Exit", Description = "Properly close current shell session." },
             new CommandDescriptor { Name = "Cls", Description = "Clear shell display of recent input." },

@@ -34,7 +34,7 @@ namespace WinShell
         /// <summary>
         /// Gets and sets the CommandProcessor used by the library manager
         /// </summary>
-        private CommandProcessor Processor;
+        private CommandExecutor _executor;
 
         /// <summary>
         /// A dictionary associating elements of CommandStrings with ShellCommandEntries, for use in 
@@ -45,9 +45,10 @@ namespace WinShell
         /// Upon construction, the LibraryManager simply stores the reference of its instantiating processor.
         /// </summary>
         /// <param name="processor"></param>
-        public LibraryManager(CommandProcessor processor)
+        public LibraryManager(CommandExecutor executor)
         {
-            Processor = processor;
+            _executor = executor;
+            initLibraries();
         }
 
         /// <summary>
@@ -60,19 +61,22 @@ namespace WinShell
         ///           In the case of a NullReferenceException, -1 is returned.                              </returns>
         public int runCommand(string[] args)
         {
-            _commands.TryGetValue(args[0], out ShellCommandEntry command);
-            try
+            if (args.Length > 0) 
             {
-                return command.Handler.ExecuteCommand(command.Descriptor, args, Processor.Executor);
+                _commands.TryGetValue(args[0], out ShellCommandEntry command);
+                try
+                {
+                    return command.Handler.ExecuteCommand(command.Descriptor, args, _executor);
+                }
+                catch (NullReferenceException e)
+                {
+                    return _executor.TryLaunch(args);
+                }
             }
-            catch (NullReferenceException e)
-            {
-                Processor.Executor.WriteInfoText("Command parsed, but not recognized.");
-                return 1;
-            }
+
+            return 0;
         }
 
-        // This method may later be called upon construction, but for now is called by the CommandProcessor.
         // Some work needs to be done with this method to check for errors while loading extra commands.
         /// <summary>
         /// A method that calls the initialize functions of the builtin library and of any dlls found.
@@ -100,7 +104,7 @@ namespace WinShell
                             dynamic d = Activator.CreateInstance(t);
                             try
                             {
-                                d.InitializeCommands(Processor);
+                                d.InitializeCommands();
                             }
                             catch (Exception e)
                             {
@@ -146,15 +150,15 @@ namespace WinShell
             }
             catch (Exception e)
             {
-                Processor.Executor.WriteInfoText(e.Message);
+                _executor.WriteInfoText(e.Message);
                 return false;
             }
         }
 
         /// <summary>
-        /// A Private class used to store command descriptors with their associated handlers.
-        /// A dictionary of these, labled _commands, is used to associate each command with the string
-        /// the client inputs to run it.
+        /// A Private class used to associate command descriptors with their corresponding handlers.
+        /// A dictionary of these, labled _commands, is used to associate each CommandDescriptor with 
+        /// the string that the client inputs to run it.
         /// </summary>
         class ShellCommandEntry
         {
